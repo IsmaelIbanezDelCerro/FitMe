@@ -1,26 +1,35 @@
 package com.example.fitme.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
+import com.example.fitme.R
+import com.example.fitme.ui.theme.FitMeTheme
 import com.example.fitme.viewmodel.CheckRachaViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun CheckDiarioScreen(onVolver: () -> Unit) {
+fun CheckDiarioScreen(onVolver: () -> Unit = {}) {
     val strings = LocalAppStrings.current
     val vm: CheckRachaViewModel = viewModel()
     val checks by vm.checks.collectAsState()
@@ -122,7 +131,7 @@ fun CheckDiarioScreen(onVolver: () -> Unit) {
                 onClick = onVolver,
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)),
                 shape = RoundedCornerShape(12.dp)
             ) { Text(strings.backToRachaBtn) }
         }
@@ -148,6 +157,68 @@ private fun TarjetaSwitch(icono: String, titulo: String, descripcion: String, va
                 onCheckedChange = if (!bloqueado) onCambio else null,
                 colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF00C853), uncheckedThumbColor = Color.Gray, uncheckedTrackColor = Color.DarkGray)
             )
+        }
+    }
+}
+
+/*Un ejemplo*/
+@Preview(showBackground = true, device = "id:pixel_8")
+@Composable
+fun CheckDiarioPreview() {
+    FitMeTheme {
+        // 1. Forzamos un fondo oscuro para que resalte el diseño
+        Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF121212)) {
+
+            // 2. Usamos un Box con la imagen (para verla en la preview)
+            Box(modifier = Modifier.fillMaxSize().paint(
+                painter = painterResource(id = R.drawable.gym_bg),
+                contentScale = ContentScale.Crop
+            )) {
+
+                // 3. Importante: Como la pantalla real pide un ViewModel y Strings,
+                // aquí solo simulamos la estructura visual básica.
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Título simulado (en lugar de usar strings del VM)
+                    Text("Check Diario", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Lunes, 5 de Mayo", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // El círculo de progreso
+                    Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            progress = { 0.5f }, // 1 de 2 completado
+                            modifier = Modifier.fillMaxSize(),
+                            color = Color(0xFF00C853),
+                            trackColor = Color.White.copy(alpha = 0.1f),
+                            strokeWidth = 10.dp
+                        )
+                        Text("1/2", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00C853))
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Una tarjeta de ejemplo para ver cómo se ve el diseño
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF00C853).copy(alpha = 0.15f))
+                    ) {
+                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text("💪", fontSize = 32.sp)
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Ejercicio", color = Color.White, fontWeight = FontWeight.Bold)
+                                Text("¿Entrenaste hoy?", color = Color.White.copy(alpha = 0.6f))
+                            }
+                            Switch(checked = true, onCheckedChange = {})
+                        }
+                    }
+                }
+            }
         }
     }
 }
