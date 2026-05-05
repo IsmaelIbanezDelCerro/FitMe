@@ -1,4 +1,4 @@
-package com.example.fitme.login
+package com.example.fitme.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background

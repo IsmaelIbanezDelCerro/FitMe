@@ -18,10 +18,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.fitme.AppStrings
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
@@ -29,49 +34,67 @@ import com.example.fitme.LocalIsSpanish
 import com.example.fitme.LocalOnToggleLanguage
 import com.example.fitme.loadStrings
 import com.example.fitme.screens.*
+import com.example.fitme.ui.theme.FitMeTheme
+import com.example.fitme.R
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            var isSpanish by rememberSaveable { mutableStateOf(true) }
-            val context = LocalContext.current
-            val strings = remember(isSpanish) { loadStrings(context, isSpanish) }
-            val onToggle: () -> Unit = { isSpanish = !isSpanish }
+            FitMeTheme {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .paint(
+                            painter = painterResource(id = R.drawable.gym_bg),
+                            contentScale = ContentScale.Crop
+                        ),
+                    color = Color.Transparent
+                ) {
 
-            CompositionLocalProvider(
-                LocalAppStrings provides strings,
-                LocalIsSpanish provides isSpanish,
-                LocalOnToggleLanguage provides onToggle
-            ) {
-                val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "login") {
-                    composable("login") {
-                        LoginScreen(navController = navController)
-                    }
-                    composable("registro") {
-                        RegisterScreen(navController = navController)
-                    }
-                    composable("intereses") {
-                        InteresesScreen(navController = navController)
-                    }
-                    composable("objetivo_calculado") {
-                        ObjetivoCalculadoScreen(onContinuar = {
-                            navController.navigate("intereses") {
-                                popUpTo("objetivo_calculado") { inclusive = true }
+                    var isSpanish by rememberSaveable { mutableStateOf(true) }
+                    val context = LocalContext.current
+                    val strings = remember(isSpanish) { loadStrings(context, isSpanish) }
+                    val onToggle: () -> Unit = { isSpanish = !isSpanish }
+
+                    CompositionLocalProvider(
+                        LocalAppStrings provides strings,
+                        LocalIsSpanish provides isSpanish,
+                        LocalOnToggleLanguage provides onToggle
+                    ) {
+                        val navController = rememberNavController()
+                        NavHost(navController = navController, startDestination = "login") {
+                            composable("login") {
+                                LoginScreen(navController = navController)
                             }
-                        })
-                    }
-                    composable("app") {
-                        AppShell(onLogout = {
-                            navController.navigate("login") {
-                                popUpTo(0) { inclusive = true }
+                            composable("registro") {
+                                RegisterScreen(navController = navController)
                             }
-                        })
+                            composable("intereses") {
+                                InteresesScreen(navController = navController)
+                            }
+                            composable("objetivo_calculado") {
+                                ObjetivoCalculadoScreen(onContinuar = {
+                                    navController.navigate("intereses") {
+                                        popUpTo("objetivo_calculado") { inclusive = true }
+                                    }
+                                })
+                            }
+                            composable("app") {
+                                AppShell(onLogout = {
+                                    navController.navigate("login") {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                })
+                            }
+                        }
                     }
+
                 }
             }
+
+
         }
     }
 }
@@ -206,18 +229,28 @@ fun LoginScreen(navController: NavController) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)))
 
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(24.dp, 40.dp),
             horizontalArrangement = Arrangement.End
         ) {
             LanguageToggleButton()
         }
 
         Column(
-            modifier = Modifier.fillMaxSize().padding(24.dp),
+            modifier = Modifier.padding(24.dp).fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("FitMe", fontSize = 48.sp, fontWeight = FontWeight.Bold, color = Color.White)
+
+            Image(
+                    painter = painterResource(
+                        id = R.drawable.nombre_fitme
+                    ),
+                    contentDescription = "", // Texto de accesibilidad
+                    modifier = Modifier
+                        .size(300.dp)
+                        .padding(vertical = 0.dp)
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = strings.loginSubtitle, fontSize = 16.sp, color = Color.White)
             Spacer(modifier = Modifier.height(40.dp))
@@ -468,6 +501,62 @@ fun ObjetivoCard(texto: String, valor: String, seleccionado: String, onSelect: (
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun GreetingPreview() {
+    FitMeTheme {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .paint(
+                    painter = painterResource(id = R.drawable.gym_bg),
+                    contentScale = ContentScale.Crop
+                ),
+            color = Color.Transparent
+        ) {
+
+            var isSpanish by rememberSaveable { mutableStateOf(true) }
+            val context = LocalContext.current
+            val strings = remember(isSpanish) { loadStrings(context, isSpanish) }
+            val onToggle: () -> Unit = { isSpanish = !isSpanish }
+
+            CompositionLocalProvider(
+                LocalAppStrings provides strings,
+                LocalIsSpanish provides isSpanish,
+                LocalOnToggleLanguage provides onToggle
+            ) {
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "login") {
+                    composable("login") {
+                        LoginScreen(navController = navController)
+                    }
+                    composable("registro") {
+                        RegisterScreen(navController = navController)
+                    }
+                    composable("intereses") {
+                        InteresesScreen(navController = navController)
+                    }
+                    composable("objetivo_calculado") {
+                        ObjetivoCalculadoScreen(onContinuar = {
+                            navController.navigate("intereses") {
+                                popUpTo("objetivo_calculado") { inclusive = true }
+                            }
+                        })
+                    }
+                    composable("app") {
+                        AppShell(onLogout = {
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        })
+                    }
+                }
+            }
+
         }
     }
 }

@@ -7,26 +7,44 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
+import com.example.fitme.LocalIsSpanish
+import com.example.fitme.LocalOnToggleLanguage
+import com.example.fitme.R
 import com.example.fitme.data.UserPreferences
 import com.example.fitme.data.entity.ComidaPersonal
+import com.example.fitme.loadStrings
+import com.example.fitme.login.AppShell
+import com.example.fitme.login.LoginScreen
+import com.example.fitme.login.RegisterScreen
+import com.example.fitme.ui.theme.FitMeTheme
 import com.example.fitme.viewmodel.MenuPersonalViewModel
 
 private val DIAS = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
 @Composable
-fun EditarMenuScreen(onVolver: () -> Unit) {
+fun EditarMenuScreen(onVolver: () -> Unit = {}) {
     val strings = LocalAppStrings.current
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
@@ -191,3 +209,54 @@ private fun dialogCampoColores() = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Color.White, unfocusedTextColor = Color.White, cursorColor = Color(0xFF00C853),
     focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent
 )
+
+@Preview(showBackground = true)
+@Composable
+fun EditarMenuPreview() {
+    FitMeTheme {
+        // Usamos un Box para simular el fondo sin llamar a toda la lógica
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .paint(
+                    painter = painterResource(id = R.drawable.gym_bg),
+                    contentScale = ContentScale.Crop
+                )
+        ) {
+            // En lugar de llamar a EditarMenuScreen(), dibujamos la estructura básica
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Editar Menú Semanal", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text("Personaliza tus comidas", color = Color.White.copy(alpha = 0.55f), fontSize = 13.sp)
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+
+                // Simulamos un par de días para ver el diseño
+                listOf("Lunes", "Martes").forEach { dia ->
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A).copy(alpha = 0.92f))
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(dia, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00C853))
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Fila de ejemplo
+                                FilaComidaEditable(
+                                    etiqueta = "Desayuno",
+                                    nombreComida = "Avena con frutas",
+                                    calorias = 350,
+                                    onEditar = {}
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+            }
+        }
+    }
+}
