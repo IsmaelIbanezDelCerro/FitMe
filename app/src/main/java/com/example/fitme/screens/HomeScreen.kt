@@ -30,6 +30,8 @@ fun HomeScreen(
     onIrMenu: () -> Unit,
     onIrRutina: () -> Unit,
     onIrRacha: () -> Unit,
+    onIrCalendario: () -> Unit,
+    onIrGimnasios: () -> Unit,
     onLogout: () -> Unit
 ) {
     val strings = LocalAppStrings.current
@@ -111,6 +113,8 @@ fun HomeScreen(
                     TarjetaAcceso(icono = "💪", titulo = strings.cardRutinaTitle, descripcion = strings.cardRutinaDesc, onClick = onIrRutina, modifier = Modifier.weight(1f))
                     TarjetaAcceso(icono = "🔥", titulo = strings.cardRachaTitle, descripcion = strings.cardRachaDesc, onClick = onIrRacha, modifier = Modifier.weight(1f))
                 }
+                TarjetaAcceso(icono = "📅", titulo = strings.cardCalendarioTitle, descripcion = strings.cardCalendarioDesc, onClick = onIrCalendario, modifier = Modifier.fillMaxWidth())
+                TarjetaAcceso(icono = "🗺️", titulo = strings.cardGimnasioTitle, descripcion = strings.cardGimnasioDesc, onClick = onIrGimnasios, modifier = Modifier.fillMaxWidth())
             }
 
             Spacer(modifier = Modifier.height(80.dp))

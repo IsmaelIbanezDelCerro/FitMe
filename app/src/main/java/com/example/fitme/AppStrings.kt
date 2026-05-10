@@ -203,7 +203,16 @@ data class AppStrings(
     val accountCreatedOkMsg: String = "¡Cuenta creada correctamente!",
     val nowCalculatingGoalMsg: String = "Ahora calcularemos tu objetivo según tu IMC",
     val continueRegisterBtn: String = "Continuar →",
-    val alreadyAccountLink: String = "¿Ya tienes cuenta? Inicia sesión"
+    val alreadyAccountLink: String = "¿Ya tienes cuenta? Inicia sesión",
+    val calendarTitle: String = "Calendario de Actividad",
+    val calendarTrainingLabel: String = "Entrenamiento",
+    val calendarMealsLabel: String = "Comidas del día",
+    val cardCalendarioTitle: String = "Calendario",
+    val cardCalendarioDesc: String = "Planificación semanal",
+    val cardGimnasioTitle: String = "Gimnasios",
+    val cardGimnasioDesc: String = "Buscar cerca de ti",
+    val userAlreadyExistsMsg: String = "Este nombre de usuario ya está registrado",
+    val loginErrorMsg2: String = "Usuario o contraseña incorrectos"
 )
 
 fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
@@ -396,7 +405,16 @@ fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
         accountCreatedOkMsg = s("accountCreatedOkMsg", "¡Cuenta creada correctamente!"),
         nowCalculatingGoalMsg = s("nowCalculatingGoalMsg", "Ahora calcularemos tu objetivo según tu IMC"),
         continueRegisterBtn = s("continueRegisterBtn", "Continuar →"),
-        alreadyAccountLink = s("alreadyAccountLink", "¿Ya tienes cuenta? Inicia sesión")
+        alreadyAccountLink = s("alreadyAccountLink", "¿Ya tienes cuenta? Inicia sesión"),
+        calendarTitle = s("calendarTitle", "Calendario de Actividad"),
+        calendarTrainingLabel = s("calendarTrainingLabel", "Entrenamiento"),
+        calendarMealsLabel = s("calendarMealsLabel", "Comidas del día"),
+        cardCalendarioTitle = s("cardCalendarioTitle", "Calendario"),
+        cardCalendarioDesc = s("cardCalendarioDesc", "Planificación semanal"),
+        cardGimnasioTitle = s("cardGimnasioTitle", "Gimnasios"),
+        cardGimnasioDesc = s("cardGimnasioDesc", "Buscar cerca de ti"),
+        userAlreadyExistsMsg = s("userAlreadyExistsMsg", "Este nombre de usuario ya está registrado"),
+        loginErrorMsg2 = s("loginErrorMsg2", "Usuario o contraseña incorrectos")
     )
 }
 

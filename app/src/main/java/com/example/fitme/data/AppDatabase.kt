@@ -13,9 +13,10 @@ import com.example.fitme.data.entity.*
         CheckDiario::class,
         EntrenamientoHistorial::class,
         EjercicioPersonal::class,
-        ComidaPersonal::class
+        ComidaPersonal::class,
+        RegistroEjercicio::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,6 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun entrenamientoDao(): EntrenamientoDao
     abstract fun ejercicioPersonalDao(): EjercicioPersonalDao
     abstract fun comidaPersonalDao(): ComidaPersonalDao
+    abstract fun registroEjercicioDao(): RegistroEjercicioDao
 
     companion object {
         @Volatile

@@ -41,6 +41,21 @@ class UserPreferences(context: Context) {
         get() = prefs.getInt("dias_entrenamiento", 3)
         set(value) { prefs.edit().putInt("dias_entrenamiento", value).apply() }
 
+    var ciudad: String
+        get() = prefs.getString("ciudad", "") ?: ""
+        set(value) { prefs.edit().putString("ciudad", value).apply() }
+
+    fun registrarUsuario(usuario: String, password: String): Boolean {
+        if (prefs.contains("cred_$usuario")) return false
+        prefs.edit().putString("cred_$usuario", password).apply()
+        return true
+    }
+
+    fun usuarioExiste(usuario: String): Boolean = prefs.contains("cred_$usuario")
+
+    fun validarLogin(usuario: String, password: String): Boolean =
+        prefs.getString("cred_$usuario", null) == password
+
     fun calcularImc(): Float {
         if (altura <= 0 || pesoActual <= 0) return 0f
         val alturaM = altura / 100f

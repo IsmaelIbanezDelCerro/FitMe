@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.fitme.AppStrings
+import com.example.fitme.data.UserPreferences
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.LocalIsSpanish
@@ -124,6 +125,8 @@ fun AppShell(onLogout: () -> Unit) {
                         onIrMenu = { navController.navigate("menu_semanal") },
                         onIrRutina = { navController.navigate("rutina_dia") },
                         onIrRacha = { navController.navigate("racha") },
+                        onIrCalendario = { navController.navigate("calendario") },
+                        onIrGimnasios = { navController.navigate("gimnasios") },
                         onLogout = onLogout
                     )
                 }
@@ -166,6 +169,12 @@ fun AppShell(onLogout: () -> Unit) {
                 }
                 composable("check_diario") {
                     CheckDiarioScreen(onVolver = { navController.popBackStack() })
+                }
+                composable("calendario") {
+                    CalendarioScreen(onVolver = { navController.popBackStack() })
+                }
+                composable("gimnasios") {
+                    GimnasiosScreen(onVolver = { navController.popBackStack() })
                 }
             }
         }
@@ -221,9 +230,10 @@ fun BottomBar(navController: NavController, rutaActual: String?, strings: AppStr
 @Composable
 fun LoginScreen(navController: NavController) {
     val strings = LocalAppStrings.current
+    val context = LocalContext.current
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var showError by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)))
@@ -236,7 +246,10 @@ fun LoginScreen(navController: NavController) {
         }
 
         Column(
-            modifier = Modifier.padding(24.dp).fillMaxSize(),
+            modifier = Modifier
+                .padding(24.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -245,7 +258,7 @@ fun LoginScreen(navController: NavController) {
                     painter = painterResource(
                         id = R.drawable.nombre_fitme
                     ),
-                    contentDescription = "", // Texto de accesibilidad
+                    contentDescription = "",
                     modifier = Modifier
                         .size(300.dp)
                         .padding(vertical = 0.dp)
@@ -255,24 +268,41 @@ fun LoginScreen(navController: NavController) {
             Text(text = strings.loginSubtitle, fontSize = 16.sp, color = Color.White)
             Spacer(modifier = Modifier.height(40.dp))
 
-            CustomField(value = usuario, onValueChange = { usuario = it }, label = strings.usernameLoginLabel)
+            CustomField(
+                value = usuario,
+                onValueChange = { usuario = it; errorMsg = "" },
+                label = strings.usernameLoginLabel
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            CustomField(value = password, onValueChange = { password = it }, label = strings.passwordLoginLabel, isPassword = true)
+            CustomField(
+                value = password,
+                onValueChange = { password = it; errorMsg = "" },
+                label = strings.passwordLoginLabel,
+                isPassword = true
+            )
 
-            if (showError) {
+            if (errorMsg.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = strings.loginErrorMsg, color = Color.Red, fontSize = 12.sp)
+                Text(text = errorMsg, color = Color.Red, fontSize = 12.sp)
             }
 
             Spacer(modifier = Modifier.height(30.dp))
 
             Button(
                 onClick = {
-                    if (usuario.isNotEmpty() && password.isNotEmpty()) {
-                        showError = false
-                        navController.navigate("app") { popUpTo("login") { inclusive = true } }
-                    } else {
-                        showError = true
+                    val prefs = UserPreferences(context)
+                    errorMsg = when {
+                        usuario.isEmpty() || password.isEmpty() ->
+                            "Rellena usuario y contraseña"
+                        !prefs.usuarioExiste(usuario) ->
+                            "El usuario \"$usuario\" no existe"
+                        !prefs.validarLogin(usuario, password) ->
+                            "Contraseña incorrecta"
+                        else -> {
+                            prefs.nombre = usuario
+                            navController.navigate("app") { popUpTo("login") { inclusive = true } }
+                            ""
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(55.dp),
@@ -290,6 +320,7 @@ fun LoginScreen(navController: NavController) {
                 fontSize = 14.sp,
                 textDecoration = TextDecoration.Underline
             )
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -398,15 +429,19 @@ fun RegisterScreen(navController: NavController) {
                             peso.toFloatOrNull() == null -> showError = strings.enterValidWeightMsg
                             altura.toFloatOrNull() == null -> showError = strings.enterValidHeightMsg
                             else -> {
-                                showError = ""
                                 val prefs = com.example.fitme.data.UserPreferences(context)
-                                prefs.nombre = usuario
-                                prefs.email = email
-                                edad.toIntOrNull()?.let { prefs.edad = it }
-                                prefs.sexo = sexo
-                                peso.toFloatOrNull()?.let { prefs.pesoActual = it }
-                                altura.toFloatOrNull()?.let { prefs.altura = it }
-                                registroExitoso = true
+                                if (!prefs.registrarUsuario(usuario, password)) {
+                                    showError = strings.userAlreadyExistsMsg
+                                } else {
+                                    showError = ""
+                                    prefs.nombre = usuario
+                                    prefs.email = email
+                                    edad.toIntOrNull()?.let { prefs.edad = it }
+                                    prefs.sexo = sexo
+                                    peso.toFloatOrNull()?.let { prefs.pesoActual = it }
+                                    altura.toFloatOrNull()?.let { prefs.altura = it }
+                                    registroExitoso = true
+                                }
                             }
                         }
                     },
