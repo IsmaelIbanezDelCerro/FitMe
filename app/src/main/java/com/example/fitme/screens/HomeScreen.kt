@@ -22,6 +22,7 @@ import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.data.UserPreferences
 import com.example.fitme.viewmodel.CheckRachaViewModel
+import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
@@ -72,6 +73,7 @@ fun HomeScreen(
                     LanguageToggleButton()
                     TextButton(onClick = {
                         prefs.cerrarSesion()
+                        FirebaseAuth.getInstance().signOut()
                         onLogout()
                     }) {
                         Text(strings.logoutBtn, color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)

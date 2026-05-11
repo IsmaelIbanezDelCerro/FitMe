@@ -32,7 +32,10 @@ import com.example.fitme.data.UserPreferences
 import com.example.fitme.data.api.LoginRequest
 import com.example.fitme.data.api.RetrofitClient
 import com.example.fitme.data.api.UsuarioDto
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.LocalIsSpanish
@@ -325,6 +328,12 @@ fun LoginScreen(navController: NavController) {
                             prefs.nombre = response.nombre
                             prefs.email = response.email
                             prefs.guardarCredenciales(usuario, password, response.id)
+                            runCatching {
+                                FirebaseAuth.getInstance()
+                                    .signInWithEmailAndPassword(response.email, password)
+                                    .await()
+                                FirebaseCrashlytics.getInstance().setUserId(response.id.toString())
+                            }
                             navController.navigate("app") { popUpTo("login") { inclusive = true } }
                         } catch (e: retrofit2.HttpException) {
                             errorMsg = if (e.code() == 401) "Email o contraseña incorrectos"
@@ -334,6 +343,7 @@ fun LoginScreen(navController: NavController) {
                         } catch (e: java.net.ConnectException) {
                             errorMsg = "No se puede conectar al servidor"
                         } catch (e: Exception) {
+                            FirebaseCrashlytics.getInstance().recordException(e)
                             errorMsg = "Error: ${e.message}"
                         } finally {
                             isLoading = false
@@ -497,6 +507,12 @@ fun RegisterScreen(navController: NavController) {
                                         altura.toFloatOrNull()?.let { prefs.altura = it }
                                         prefs.diasEntrenamiento = diasEntrenamiento.toInt()
                                         prefs.guardarCredenciales(usuario, password, response.id)
+                                        runCatching {
+                                            FirebaseAuth.getInstance()
+                                                .createUserWithEmailAndPassword(email, password)
+                                                .await()
+                                            FirebaseCrashlytics.getInstance().setUserId(response.id.toString())
+                                        }
                                         registroExitoso = true
                                     } catch (e: retrofit2.HttpException) {
                                         showError = when (e.code()) {
@@ -508,6 +524,7 @@ fun RegisterScreen(navController: NavController) {
                                     } catch (e: java.net.ConnectException) {
                                         showError = "No se puede conectar al servidor"
                                     } catch (e: Exception) {
+                                        FirebaseCrashlytics.getInstance().recordException(e)
                                         showError = "Error: ${e.message}"
                                     } finally {
                                         isLoading = false
