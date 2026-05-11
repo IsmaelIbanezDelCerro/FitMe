@@ -23,7 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
-import com.example.fitme.data.entity.RegistroPeso
+import com.example.fitme.data.api.RegistroPesoDto
 import com.example.fitme.viewmodel.PerfilViewModel
 
 @Composable
@@ -53,7 +53,7 @@ fun GraficaPesoScreen(onVolver: () -> Unit) {
                     )
                 }
             } else {
-                LineaGrafica(puntos = datos.map { it.peso }, color = Color(0xFF00C853), etiquetaY = "kg")
+                LineaGrafica(puntos = datos.map { it.pesoKg }, color = Color(0xFF00C853), etiquetaY = "kg")
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -115,7 +115,11 @@ fun GraficaImcScreen(onVolver: () -> Unit) {
                     )
                 }
             } else {
-                LineaGrafica(puntos = datos.map { it.imc }, color = Color(0xFFFFC107), etiquetaY = strings.imcLabel)
+                LineaGrafica(
+                    puntos = datos.map { it.nota?.removePrefix("IMC: ")?.toFloatOrNull() ?: 0f },
+                    color = Color(0xFFFFC107),
+                    etiquetaY = strings.imcLabel
+                )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -182,25 +186,26 @@ private fun LineaGrafica(puntos: List<Float>, color: Color, etiquetaY: String) {
 }
 
 @Composable
-private fun FilaRegistroPeso(registro: RegistroPeso) {
+private fun FilaRegistroPeso(registro: RegistroPesoDto) {
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(registro.fecha, color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
-        Text("${"%.1f".format(registro.peso)} kg", color = Color(0xFF00C853), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text("${"%.1f".format(registro.pesoKg)} kg", color = Color(0xFF00C853), fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
 }
 
 @Composable
-private fun FilaRegistroImc(registro: RegistroPeso) {
+private fun FilaRegistroImc(registro: RegistroPesoDto) {
+    val imc = registro.nota?.removePrefix("IMC: ")?.toFloatOrNull() ?: 0f
     val color = when {
-        registro.imc < 18.5f -> Color(0xFF2196F3)
-        registro.imc < 25f -> Color(0xFF00C853)
-        registro.imc < 30f -> Color(0xFFFFC107)
+        imc < 18.5f -> Color(0xFF2196F3)
+        imc < 25f -> Color(0xFF00C853)
+        imc < 30f -> Color(0xFFFFC107)
         else -> Color(0xFFF44336)
     }
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(registro.fecha, color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
-        Text("${"%.2f".format(registro.imc)}", color = color, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Text("${"%.2f".format(imc)}", color = color, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
 }

@@ -3,26 +3,45 @@ package com.example.fitme.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fitme.data.AppDatabase
-import com.example.fitme.data.entity.EntrenamientoHistorial
-import kotlinx.coroutines.flow.SharingStarted
+import com.example.fitme.data.UserPreferences
+import com.example.fitme.data.api.RutinaDto
+import com.example.fitme.data.api.RetrofitClient
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 class EntrenamientoViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val dao = AppDatabase.obtenerInstancia(application).entrenamientoDao()
+    private val prefs = UserPreferences(application)
 
-    val historial: StateFlow<List<EntrenamientoHistorial>> = dao.obtenerTodos()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _historial = MutableStateFlow<List<RutinaDto>>(emptyList())
+    val historial: StateFlow<List<RutinaDto>> = _historial.asStateFlow()
+
+    init {
+        cargarHistorial()
+    }
+
+    private fun cargarHistorial() {
+        viewModelScope.launch {
+            try {
+                _historial.value = RetrofitClient.api.getRutinas(prefs.usuarioId)
+            } catch (_: Exception) {}
+        }
+    }
 
     fun guardarEntrenamiento(nombreRutina: String, duracionMinutos: Int) {
         val fecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         viewModelScope.launch {
-            dao.insertar(EntrenamientoHistorial(fecha = fecha, nombreRutina = nombreRutina, duracionMinutos = duracionMinutos))
+            try {
+                RetrofitClient.api.addRutina(
+                    prefs.usuarioId,
+                    RutinaDto(nombre = nombreRutina, objetivo = "$duracionMinutos min · $fecha", activa = false)
+                )
+                cargarHistorial()
+            } catch (_: Exception) {}
         }
     }
 }

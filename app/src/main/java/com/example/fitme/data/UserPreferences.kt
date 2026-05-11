@@ -45,16 +45,26 @@ class UserPreferences(context: Context) {
         get() = prefs.getString("ciudad", "") ?: ""
         set(value) { prefs.edit().putString("ciudad", value).apply() }
 
-    fun registrarUsuario(usuario: String, password: String): Boolean {
-        if (prefs.contains("cred_$usuario")) return false
-        prefs.edit().putString("cred_$usuario", password).apply()
-        return true
+    var usuarioId: Int
+        get() = prefs.getInt("usuario_id", -1)
+        set(value) { prefs.edit().putInt("usuario_id", value).apply() }
+
+    val estaLogueado: Boolean
+        get() = usuarioId != -1
+
+    fun cerrarSesion() { prefs.edit().remove("usuario_id").apply() }
+
+    fun guardarCredenciales(email: String, password: String, id: Int) {
+        prefs.edit()
+            .putString("cred_$email", password)
+            .putInt("uid_$email", id)
+            .apply()
     }
 
-    fun usuarioExiste(usuario: String): Boolean = prefs.contains("cred_$usuario")
-
-    fun validarLogin(usuario: String, password: String): Boolean =
-        prefs.getString("cred_$usuario", null) == password
+    fun loginLocal(email: String, password: String): Int {
+        val stored = prefs.getString("cred_$email", null) ?: return -1
+        return if (stored == password) prefs.getInt("uid_$email", -1) else -1
+    }
 
     fun calcularImc(): Float {
         if (altura <= 0 || pesoActual <= 0) return 0f

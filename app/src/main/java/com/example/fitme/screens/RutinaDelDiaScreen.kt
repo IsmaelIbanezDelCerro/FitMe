@@ -19,7 +19,7 @@ import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.data.UserPreferences
-import com.example.fitme.data.entity.EjercicioPersonal
+import com.example.fitme.data.api.EjercicioDto
 import com.example.fitme.viewmodel.EntrenamientoViewModel
 import com.example.fitme.viewmodel.RutinaPersonalViewModel
 import java.util.*
@@ -34,9 +34,12 @@ data class Ejercicio(
 
 data class Rutina(val nombre: String, val duracionMin: Int, val ejercicios: List<Ejercicio>)
 
-fun EjercicioPersonal.toEjercicio() = Ejercicio(
-    nombre = nombre, series = series, repeticiones = repeticiones,
-    descanso = descanso, descripcion = descripcion
+fun EjercicioDto.toEjercicio() = Ejercicio(
+    nombre = nombre,
+    series = series,
+    repeticiones = repeticiones.toString(),
+    descanso = "${descansoSeg}s",
+    descripcion = grupoMuscular ?: ""
 )
 
 @Composable
@@ -57,7 +60,7 @@ fun RutinaDelDiaScreen(onVerHistorial: () -> Unit, onEditarRutina: () -> Unit) {
     val duracion = if (tieneRutinaPersonal) ejerciciosPersonales.size * 7 else rutinaDefault.duracionMin
 
     var completada by remember { mutableStateOf(false) }
-    val yaCompletadaHoy = historial.any { it.fecha == fechaHoyStr() && it.nombreRutina == nombreRutina }
+    val yaCompletadaHoy = historial.any { it.nombre == nombreRutina && it.objetivo?.contains(fechaHoyStr()) == true }
 
     GymBackground {
         LazyColumn(

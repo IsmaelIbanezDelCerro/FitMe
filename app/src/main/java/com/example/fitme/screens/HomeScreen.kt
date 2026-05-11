@@ -38,8 +38,8 @@ fun HomeScreen(
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
     val vm: CheckRachaViewModel = viewModel()
-    val checks by vm.checks.collectAsState()
-    val rachaActual = remember(checks) { vm.calcularRachaActual(checks) }
+    val racha by vm.racha.collectAsState()
+    val rachaActual = racha.diasConsecutivos
 
     GymBackground {
         Column(
@@ -70,7 +70,10 @@ fun HomeScreen(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     LanguageToggleButton()
-                    TextButton(onClick = onLogout) {
+                    TextButton(onClick = {
+                        prefs.cerrarSesion()
+                        onLogout()
+                    }) {
                         Text(strings.logoutBtn, color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
                     }
                 }

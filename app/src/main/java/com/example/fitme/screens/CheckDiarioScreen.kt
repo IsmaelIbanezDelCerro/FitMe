@@ -32,14 +32,14 @@ import java.util.*
 fun CheckDiarioScreen(onVolver: () -> Unit = {}) {
     val strings = LocalAppStrings.current
     val vm: CheckRachaViewModel = viewModel()
-    val checks by vm.checks.collectAsState()
+    val racha by vm.racha.collectAsState()
 
     val fechaHoy = vm.fechaHoy()
-    val checkHoy = checks.find { it.fecha == fechaHoy }
+    val yaGuardadoHoy = racha.ultimaActividad == fechaHoy
 
-    var ejercicioHecho by remember(checkHoy) { mutableStateOf(checkHoy?.ejercicioHecho ?: false) }
-    var dietaHecha by remember(checkHoy) { mutableStateOf(checkHoy?.dietaHecha ?: false) }
-    var guardado by remember { mutableStateOf(checkHoy != null) }
+    var ejercicioHecho by remember { mutableStateOf(false) }
+    var dietaHecha by remember { mutableStateOf(false) }
+    var guardado by remember(yaGuardadoHoy) { mutableStateOf(yaGuardadoHoy) }
 
     val fechaFormateada = remember {
         val sdf = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es", "ES"))
@@ -85,7 +85,7 @@ fun CheckDiarioScreen(onVolver: () -> Unit = {}) {
                 descripcion = strings.exerciseSwitchDesc,
                 valor = ejercicioHecho,
                 onCambio = { ejercicioHecho = it; guardado = false },
-                bloqueado = checkHoy != null
+                bloqueado = yaGuardadoHoy
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -96,12 +96,12 @@ fun CheckDiarioScreen(onVolver: () -> Unit = {}) {
                 descripcion = strings.dietSwitchDesc,
                 valor = dietaHecha,
                 onCambio = { dietaHecha = it; guardado = false },
-                bloqueado = checkHoy != null
+                bloqueado = yaGuardadoHoy
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (checkHoy != null) {
+            if (yaGuardadoHoy) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),

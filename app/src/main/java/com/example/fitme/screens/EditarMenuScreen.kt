@@ -8,40 +8,26 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
-import com.example.fitme.LocalIsSpanish
-import com.example.fitme.LocalOnToggleLanguage
-import com.example.fitme.R
 import com.example.fitme.data.UserPreferences
-import com.example.fitme.data.entity.ComidaPersonal
-import com.example.fitme.loadStrings
-import com.example.fitme.login.AppShell
-import com.example.fitme.login.LoginScreen
-import com.example.fitme.login.RegisterScreen
-import com.example.fitme.ui.theme.FitMeTheme
+import com.example.fitme.data.api.DiaMenuDto
 import com.example.fitme.viewmodel.MenuPersonalViewModel
 
 private val DIAS = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+
+private data class MealEditing(val diaSemana: Int, val momento: String)
 
 @Composable
 fun EditarMenuScreen(onVolver: () -> Unit = {}) {
@@ -49,32 +35,55 @@ fun EditarMenuScreen(onVolver: () -> Unit = {}) {
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
     val vm: MenuPersonalViewModel = viewModel()
-    val comidasPersonales by vm.comidasPersonales.collectAsState()
+    val diasMenu by vm.diasMenu.collectAsState()
 
     val MOMENTOS = listOf("desayuno" to strings.breakfastLabel, "almuerzo" to strings.lunchLabel, "cena" to strings.dinnerLabel)
 
-    val menuLocal = remember(comidasPersonales) {
-        val menuBase = generarMenu(prefs.objetivo)
-        val mapa = mutableMapOf<Pair<String, String>, ComidaPersonal>()
-        menuBase.forEach { dia ->
-            mapa[dia.dia to "desayuno"] = ComidaPersonal(dia.dia, "desayuno", dia.desayuno.nombre, dia.desayuno.calorias, dia.desayuno.proteinas)
-            mapa[dia.dia to "almuerzo"] = ComidaPersonal(dia.dia, "almuerzo", dia.almuerzo.nombre, dia.almuerzo.calorias, dia.almuerzo.proteinas)
-            mapa[dia.dia to "cena"] = ComidaPersonal(dia.dia, "cena", dia.cena.nombre, dia.cena.calorias, dia.cena.proteinas)
+    val menuLocal = remember(diasMenu) {
+        val base = generarMenu(prefs.objetivo)
+        val map = mutableMapOf<Int, DiaMenuDto>()
+        DIAS.forEachIndexed { idx, _ ->
+            val dto = diasMenu.firstOrNull { it.diaSemana == idx }
+            val baseDia = base.getOrNull(idx)
+            map[idx] = dto ?: DiaMenuDto(
+                diaSemana = idx,
+                desayuno = baseDia?.desayuno?.nombre,
+                almuerzo = baseDia?.almuerzo?.nombre,
+                cena = baseDia?.cena?.nombre,
+                kcalTotales = baseDia?.let { it.desayuno.calorias + it.almuerzo.calorias + it.cena.calorias }
+            )
         }
-        comidasPersonales.forEach { mapa[it.dia to it.momento] = it }
-        mapa.toMutableMap()
+        map
     }.let { remember { mutableStateOf(it) } }.value
 
-    var comidaEditando by remember { mutableStateOf<Pair<String, String>?>(null) }
+    var mealEditando by remember { mutableStateOf<MealEditing?>(null) }
 
-    if (comidaEditando != null) {
-        val key = comidaEditando!!
-        val actual = menuLocal[key] ?: return
+    if (mealEditando != null) {
+        val key = mealEditando!!
+        val dto = menuLocal[key.diaSemana] ?: return
+        val valorActual = when (key.momento) {
+            "desayuno" -> dto.desayuno ?: ""
+            "almuerzo" -> dto.almuerzo ?: ""
+            else -> dto.cena ?: ""
+        }
+        val momentoLabel = when (key.momento) {
+            "desayuno" -> strings.breakfastLabel
+            "almuerzo" -> strings.lunchLabel
+            else -> strings.dinnerLabel
+        }
         DialogEditarComida(
-            comida = actual,
+            titulo = "$momentoLabel — ${DIAS[key.diaSemana]}",
+            valorActual = valorActual,
             strings = strings,
-            onConfirmar = { nueva -> menuLocal[key] = nueva; comidaEditando = null },
-            onDescartar = { comidaEditando = null }
+            onConfirmar = { nuevo ->
+                menuLocal[key.diaSemana] = when (key.momento) {
+                    "desayuno" -> dto.copy(desayuno = nuevo)
+                    "almuerzo" -> dto.copy(almuerzo = nuevo)
+                    else -> dto.copy(cena = nuevo)
+                }
+                mealEditando = null
+            },
+            onDescartar = { mealEditando = null }
         )
     }
 
@@ -100,7 +109,7 @@ fun EditarMenuScreen(onVolver: () -> Unit = {}) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            DIAS.forEach { dia ->
+            DIAS.forEachIndexed { idx, dia ->
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -110,13 +119,19 @@ fun EditarMenuScreen(onVolver: () -> Unit = {}) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(dia, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00C853))
                             Spacer(modifier = Modifier.height(12.dp))
+                            val dto = menuLocal[idx]
                             MOMENTOS.forEach { (clave, etiqueta) ->
-                                val comida = menuLocal[dia to clave]
+                                val nombre = when (clave) {
+                                    "desayuno" -> dto?.desayuno ?: "—"
+                                    "almuerzo" -> dto?.almuerzo ?: "—"
+                                    else -> dto?.cena ?: "—"
+                                }
+                                val kcal = if (clave == "desayuno") dto?.kcalTotales ?: 0 else 0
                                 FilaComidaEditable(
                                     etiqueta = etiqueta,
-                                    nombreComida = comida?.nombre ?: "—",
-                                    calorias = comida?.calorias ?: 0,
-                                    onEditar = { comidaEditando = dia to clave }
+                                    nombreComida = nombre,
+                                    calorias = kcal,
+                                    onEditar = { mealEditando = MealEditing(idx, clave) }
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                             }
@@ -129,7 +144,7 @@ fun EditarMenuScreen(onVolver: () -> Unit = {}) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    onClick = { vm.guardarTodo(menuLocal.values.toList()) },
+                    onClick = { menuLocal.values.forEach { vm.guardarDia(it) } },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
                     shape = RoundedCornerShape(12.dp)
@@ -154,52 +169,50 @@ private fun FilaComidaEditable(etiqueta: String, nombreComida: String, calorias:
         Column(modifier = Modifier.weight(1f)) {
             Text(etiqueta, color = Color.White.copy(alpha = 0.55f), fontSize = 11.sp)
             Text(nombreComida, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            if (calorias > 0) Text("$calorias kcal", color = Color(0xFF00C853), fontSize = 11.sp)
+            if (calorias > 0) Text("$calorias kcal (total día)", color = Color(0xFF00C853), fontSize = 11.sp)
         }
         IconButton(onClick = onEditar) { Text("✏️", fontSize = 16.sp) }
     }
 }
 
 @Composable
-private fun DialogEditarComida(comida: ComidaPersonal, strings: com.example.fitme.AppStrings, onConfirmar: (ComidaPersonal) -> Unit, onDescartar: () -> Unit) {
-    var nombre by remember { mutableStateOf(comida.nombre) }
-    var calorias by remember { mutableStateOf(if (comida.calorias > 0) comida.calorias.toString() else "") }
-    var proteinas by remember { mutableStateOf(if (comida.proteinas > 0) comida.proteinas.toString() else "") }
-
-    val momentoLabel = when (comida.momento) {
-        "desayuno" -> strings.breakfastLabel
-        "almuerzo" -> strings.lunchLabel
-        else -> strings.dinnerLabel
-    }
+private fun DialogEditarComida(
+    titulo: String,
+    valorActual: String,
+    strings: com.example.fitme.AppStrings,
+    onConfirmar: (String) -> Unit,
+    onDescartar: () -> Unit
+) {
+    var nombre by remember { mutableStateOf(valorActual) }
 
     AlertDialog(
         onDismissRequest = onDescartar,
         containerColor = Color(0xFF1E1E1E),
         title = {
-            Text(text = "$momentoLabel — ${comida.dia}", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = titulo, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = nombre, onValueChange = { nombre = it },
-                    label = { Text(strings.foodFieldLabel, color = Color.White.copy(alpha = 0.7f)) },
-                    colors = dialogCampoColores(), shape = RoundedCornerShape(10.dp), modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = calorias, onValueChange = { calorias = it }, label = { Text(strings.kcalFieldLabel, color = Color.White.copy(alpha = 0.7f)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = dialogCampoColores(), shape = RoundedCornerShape(10.dp), modifier = Modifier.weight(1f), singleLine = true)
-                    OutlinedTextField(value = proteinas, onValueChange = { proteinas = it }, label = { Text(strings.proteinFieldLabel, color = Color.White.copy(alpha = 0.7f)) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = dialogCampoColores(), shape = RoundedCornerShape(10.dp), modifier = Modifier.weight(1f), singleLine = true)
-                }
-            }
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text(strings.foodFieldLabel, color = Color.White.copy(alpha = 0.7f)) },
+                colors = dialogCampoColores(),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         confirmButton = {
             Button(
-                onClick = { onConfirmar(comida.copy(nombre = nombre.trim().ifEmpty { comida.nombre }, calorias = calorias.toIntOrNull() ?: comida.calorias, proteinas = proteinas.toIntOrNull() ?: comida.proteinas)) },
+                onClick = { onConfirmar(nombre.trim().ifEmpty { valorActual }) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
                 shape = RoundedCornerShape(8.dp)
             ) { Text(strings.saveBtn, fontWeight = FontWeight.Bold) }
         },
-        dismissButton = { TextButton(onClick = onDescartar) { Text(strings.cancelBtn, color = Color.White.copy(alpha = 0.6f)) } }
+        dismissButton = {
+            TextButton(onClick = onDescartar) {
+                Text(strings.cancelBtn, color = Color.White.copy(alpha = 0.6f))
+            }
+        }
     )
 }
 
@@ -209,54 +222,3 @@ private fun dialogCampoColores() = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Color.White, unfocusedTextColor = Color.White, cursorColor = Color(0xFF00C853),
     focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent
 )
-
-@Preview(showBackground = true)
-@Composable
-fun EditarMenuPreview() {
-    FitMeTheme {
-        // Usamos un Box para simular el fondo sin llamar a toda la lógica
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .paint(
-                    painter = painterResource(id = R.drawable.gym_bg),
-                    contentScale = ContentScale.Crop
-                )
-        ) {
-            // En lugar de llamar a EditarMenuScreen(), dibujamos la estructura básica
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("Editar Menú Semanal", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                    Text("Personaliza tus comidas", color = Color.White.copy(alpha = 0.55f), fontSize = 13.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                // Simulamos un par de días para ver el diseño
-                listOf("Lunes", "Martes").forEach { dia ->
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A).copy(alpha = 0.92f))
-                        ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(dia, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00C853))
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                // Fila de ejemplo
-                                FilaComidaEditable(
-                                    etiqueta = "Desayuno",
-                                    nombreComida = "Avena con frutas",
-                                    calorias = 350,
-                                    onEditar = {}
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                    }
-                }
-            }
-        }
-    }
-}

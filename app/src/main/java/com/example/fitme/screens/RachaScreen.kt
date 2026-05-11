@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -20,22 +19,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
-import com.example.fitme.data.entity.CheckDiario
 import com.example.fitme.viewmodel.CheckRachaViewModel
-import java.text.SimpleDateFormat
-import java.util.*
 
 @Composable
 fun RachaScreen(onIrCheckDiario: () -> Unit) {
     val strings = LocalAppStrings.current
     val vm: CheckRachaViewModel = viewModel()
-    val checks by vm.checks.collectAsState()
+    val racha by vm.racha.collectAsState()
 
-    val rachaActual = remember(checks) { vm.calcularRachaActual(checks) }
-    val mejorRacha = remember(checks) { vm.calcularMejorRacha(checks) }
+    val rachaActual = racha.diasConsecutivos
+    val mejorRacha = racha.rachaMaxima
     val fechaHoy = vm.fechaHoy()
-    val checkHoy = checks.find { it.fecha == fechaHoy }
-    val hoyCompletado = checkHoy != null && (checkHoy.ejercicioHecho || checkHoy.dietaHecha)
+    val hoyCompletado = racha.ultimaActividad == fechaHoy
 
     GymBackground {
         LazyColumn(
@@ -88,7 +83,7 @@ fun RachaScreen(onIrCheckDiario: () -> Unit) {
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     TarjetaStat(strings.bestStreakLabel, "$mejorRacha ${strings.daysLabel}", Modifier.weight(1f))
-                    TarjetaStat(strings.totalDaysLabel, "${checks.count { it.ejercicioHecho || it.dietaHecha }}", Modifier.weight(1f))
+                    TarjetaStat(strings.totalDaysLabel, "$rachaActual ${strings.daysLabel}", Modifier.weight(1f))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -104,11 +99,7 @@ fun RachaScreen(onIrCheckDiario: () -> Unit) {
                         Column {
                             Text(text = strings.todayLabel, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             Text(
-                                text = if (hoyCompletado) {
-                                    val ej = if (checkHoy?.ejercicioHecho == true) strings.exerciseCheckChip else ""
-                                    val diet = if (checkHoy?.dietaHecha == true) strings.dietCheckChip else ""
-                                    listOf(ej, diet).filter { it.isNotEmpty() }.joinToString("  ")
-                                } else strings.noCheckYetMsg,
+                                text = if (hoyCompletado) strings.exerciseCheckChip else strings.noCheckYetMsg,
                                 color = Color.White.copy(alpha = 0.6f),
                                 fontSize = 13.sp
                             )
@@ -127,31 +118,8 @@ fun RachaScreen(onIrCheckDiario: () -> Unit) {
                     Text(text = if (hoyCompletado) strings.viewCheckBtn else strings.registerCheckBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                if (checks.isNotEmpty()) {
-                    Text(strings.dayHistoryTitle, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
+                Spacer(modifier = Modifier.height(80.dp))
             }
-
-            if (checks.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(strings.noRegisteredDaysMsg, color = Color.White.copy(alpha = 0.5f), textAlign = TextAlign.Center, fontSize = 14.sp)
-                    }
-                }
-            } else {
-                items(checks) { check ->
-                    FilaCheck(check)
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-
-            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 }
@@ -167,43 +135,5 @@ private fun TarjetaStat(titulo: String, valor: String, modifier: Modifier = Modi
             Text(valor, color = Color(0xFF00C853), fontSize = 24.sp, fontWeight = FontWeight.Bold)
             Text(titulo, color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, textAlign = TextAlign.Center)
         }
-    }
-}
-
-@Composable
-private fun FilaCheck(check: CheckDiario) {
-    val ambos = check.ejercicioHecho && check.dietaHecha
-    val ninguno = !check.ejercicioHecho && !check.dietaHecha
-    val colorFondo = when { ambos -> Color(0xFF00C853).copy(alpha = 0.15f); ninguno -> Color(0xFF1A1A1A); else -> Color(0xFFFFC107).copy(alpha = 0.1f) }
-    val icono = when { ambos -> "🔥"; ninguno -> "—"; else -> "✓" }
-    val colorIcono = when { ambos -> Color(0xFF00C853); ninguno -> Color.White.copy(alpha = 0.3f); else -> Color(0xFFFFC107) }
-
-    val fechaDisplay = try {
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val sdfOut = SimpleDateFormat("d MMM", Locale("es", "ES"))
-        sdfOut.format(sdf.parse(check.fecha) ?: Date())
-    } catch (e: Exception) { check.fecha }
-
-    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp), colors = CardDefaults.cardColors(containerColor = colorFondo)) {
-        Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(icono, fontSize = 20.sp, color = colorIcono)
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(fechaDisplay, color = Color.White, fontWeight = FontWeight.Medium, fontSize = 14.sp, modifier = Modifier.weight(1f))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ChipCheck("💪", check.ejercicioHecho)
-                ChipCheck("🥗", check.dietaHecha)
-            }
-        }
-    }
-}
-
-@Composable
-private fun ChipCheck(icono: String, completado: Boolean) {
-    Box(
-        modifier = Modifier
-            .background(if (completado) Color(0xFF00C853).copy(alpha = 0.3f) else Color.White.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Text(text = icono, fontSize = 14.sp, color = if (completado) Color.White else Color.White.copy(alpha = 0.3f))
     }
 }

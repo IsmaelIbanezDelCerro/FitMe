@@ -29,6 +29,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.fitme.AppStrings
 import com.example.fitme.data.UserPreferences
+import com.example.fitme.data.api.LoginRequest
+import com.example.fitme.data.api.RetrofitClient
+import com.example.fitme.data.api.UsuarioDto
+import kotlinx.coroutines.launch
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.LocalIsSpanish
@@ -107,7 +111,7 @@ fun AppShell(onLogout: () -> Unit) {
     val navBackStack by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStack?.destination?.route
 
-    val rutasConBottomBar = setOf("home", "perfil", "menu_semanal", "rutina_dia", "racha")
+    val rutasConBottomBar = setOf("home", "perfil", "menu_semanal", "rutina_dia", "racha", "calendario", "gimnasios")
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -190,7 +194,9 @@ fun BottomBar(navController: NavController, rutaActual: String?, strings: AppStr
         ItemNav("perfil", "👤", strings.navPerfil),
         ItemNav("menu_semanal", "🥗", strings.navMenu),
         ItemNav("rutina_dia", "💪", strings.navRutina),
-        ItemNav("racha", "🔥", strings.navRacha)
+        ItemNav("racha", "🔥", strings.navRacha),
+        ItemNav("calendario", "📅", strings.navCalendario),
+        ItemNav("gimnasios", "🗺️", strings.navGimnasios)
     )
 
     NavigationBar(containerColor = Color(0xFF111111), tonalElevation = 0.dp) {
@@ -199,19 +205,26 @@ fun BottomBar(navController: NavController, rutaActual: String?, strings: AppStr
             NavigationBarItem(
                 selected = seleccionado,
                 onClick = {
-                    navController.navigate(item.ruta) {
-                        popUpTo("home") { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+                    if (item.ruta == "home") {
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    } else {
+                        navController.navigate(item.ruta) {
+                            popUpTo("home") { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
                 },
                 icon = {
-                    Text(text = item.icono, fontSize = if (seleccionado) 22.sp else 20.sp)
+                    Text(text = item.icono, fontSize = if (seleccionado) 18.sp else 16.sp)
                 },
                 label = {
                     Text(
                         text = item.etiqueta,
-                        fontSize = 10.sp,
+                        fontSize = 8.sp,
                         color = if (seleccionado) Color(0xFF00C853) else Color.White.copy(alpha = 0.5f),
                         fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal
                     )
@@ -231,9 +244,11 @@ fun BottomBar(navController: NavController, rutaActual: String?, strings: AppStr
 fun LoginScreen(navController: NavController) {
     val strings = LocalAppStrings.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var usuario by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMsg by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)))
@@ -290,26 +305,55 @@ fun LoginScreen(navController: NavController) {
 
             Button(
                 onClick = {
+                    if (usuario.isEmpty() || password.isEmpty()) {
+                        errorMsg = "Rellena email y contraseña"
+                        return@Button
+                    }
+                    errorMsg = ""
                     val prefs = UserPreferences(context)
-                    errorMsg = when {
-                        usuario.isEmpty() || password.isEmpty() ->
-                            "Rellena usuario y contraseña"
-                        !prefs.usuarioExiste(usuario) ->
-                            "El usuario \"$usuario\" no existe"
-                        !prefs.validarLogin(usuario, password) ->
-                            "Contraseña incorrecta"
-                        else -> {
-                            prefs.nombre = usuario
+                    val cachedId = prefs.loginLocal(usuario, password)
+                    if (cachedId != -1) {
+                        prefs.usuarioId = cachedId
+                        navController.navigate("app") { popUpTo("login") { inclusive = true } }
+                        return@Button
+                    }
+                    isLoading = true
+                    scope.launch {
+                        try {
+                            val response = RetrofitClient.api.login(LoginRequest(nombre = usuario, password = password))
+                            prefs.usuarioId = response.id
+                            prefs.nombre = response.nombre
+                            prefs.email = response.email
+                            prefs.guardarCredenciales(usuario, password, response.id)
                             navController.navigate("app") { popUpTo("login") { inclusive = true } }
-                            ""
+                        } catch (e: retrofit2.HttpException) {
+                            errorMsg = if (e.code() == 401) "Email o contraseña incorrectos"
+                                       else "Error del servidor (${e.code()})"
+                        } catch (e: java.net.SocketTimeoutException) {
+                            errorMsg = "Sin respuesta del servidor (timeout)"
+                        } catch (e: java.net.ConnectException) {
+                            errorMsg = "No se puede conectar al servidor"
+                        } catch (e: Exception) {
+                            errorMsg = "Error: ${e.message}"
+                        } finally {
+                            isLoading = false
                         }
                     }
                 },
+                enabled = !isLoading,
                 modifier = Modifier.fillMaxWidth().height(55.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(text = strings.loginBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.Black,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(text = strings.loginBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -328,6 +372,8 @@ fun LoginScreen(navController: NavController) {
 @Composable
 fun RegisterScreen(navController: NavController) {
     val strings = LocalAppStrings.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     var usuario by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -338,8 +384,7 @@ fun RegisterScreen(navController: NavController) {
     var diasEntrenamiento by remember { mutableStateOf(3f) }
     var showError by remember { mutableStateOf("") }
     var registroExitoso by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(false) }
 
     val isFormValid = usuario.isNotEmpty() && email.isNotEmpty() &&
             password.isNotEmpty() && edad.isNotEmpty() &&
@@ -429,27 +474,54 @@ fun RegisterScreen(navController: NavController) {
                             peso.toFloatOrNull() == null -> showError = strings.enterValidWeightMsg
                             altura.toFloatOrNull() == null -> showError = strings.enterValidHeightMsg
                             else -> {
-                                val prefs = com.example.fitme.data.UserPreferences(context)
-                                if (!prefs.registrarUsuario(usuario, password)) {
-                                    showError = strings.userAlreadyExistsMsg
-                                } else {
-                                    showError = ""
-                                    prefs.nombre = usuario
-                                    prefs.email = email
-                                    edad.toIntOrNull()?.let { prefs.edad = it }
-                                    prefs.sexo = sexo
-                                    peso.toFloatOrNull()?.let { prefs.pesoActual = it }
-                                    altura.toFloatOrNull()?.let { prefs.altura = it }
-                                    registroExitoso = true
+                                isLoading = true
+                                showError = ""
+                                scope.launch {
+                                    try {
+                                        val response = RetrofitClient.api.registrar(
+                                            UsuarioDto(
+                                                nombre = usuario,
+                                                email = email,
+                                                password = password,
+                                                pesoActual = peso.toFloatOrNull() ?: 0f,
+                                                alturaCm = altura.toFloatOrNull() ?: 0f
+                                            )
+                                        )
+                                        val prefs = UserPreferences(context)
+                                        prefs.usuarioId = response.id
+                                        prefs.nombre = response.nombre
+                                        prefs.email = response.email
+                                        edad.toIntOrNull()?.let { prefs.edad = it }
+                                        prefs.sexo = sexo
+                                        peso.toFloatOrNull()?.let { prefs.pesoActual = it }
+                                        altura.toFloatOrNull()?.let { prefs.altura = it }
+                                        prefs.diasEntrenamiento = diasEntrenamiento.toInt()
+                                        prefs.guardarCredenciales(usuario, password, response.id)
+                                        registroExitoso = true
+                                    } catch (e: retrofit2.HttpException) {
+                                        showError = when (e.code()) {
+                                            409, 400 -> "El email ya está registrado"
+                                            else -> "Error del servidor (${e.code()})"
+                                        }
+                                    } catch (e: java.net.SocketTimeoutException) {
+                                        showError = "Sin respuesta del servidor (timeout)"
+                                    } catch (e: java.net.ConnectException) {
+                                        showError = "No se puede conectar al servidor"
+                                    } catch (e: Exception) {
+                                        showError = "Error: ${e.message}"
+                                    } finally {
+                                        isLoading = false
+                                    }
                                 }
                             }
                         }
                     },
+                    enabled = !isLoading,
                     modifier = Modifier.fillMaxWidth().height(55.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(text = strings.signupBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = if (isLoading) "..." else strings.signupBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             } else {
                 Card(

@@ -22,7 +22,7 @@ import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.data.UserPreferences
-import com.example.fitme.data.entity.EjercicioPersonal
+import com.example.fitme.data.api.EjercicioDto
 import com.example.fitme.viewmodel.RutinaPersonalViewModel
 
 val CATALOGO_EJERCICIOS: List<Ejercicio> = listOf(
@@ -131,11 +131,13 @@ fun EditarRutinaScreen(onVolver: () -> Unit) {
                 val rutinaDefault = obtenerRutinaDia(prefs.diasEntrenamiento)
                 OutlinedButton(
                     onClick = {
-                        val lista = rutinaDefault.ejercicios.mapIndexed { i, ej ->
-                            EjercicioPersonal(
-                                nombre = ej.nombre, series = ej.series,
-                                repeticiones = ej.repeticiones, descanso = ej.descanso,
-                                descripcion = ej.descripcion, orden = i
+                        val lista = rutinaDefault.ejercicios.map { ej ->
+                            EjercicioDto(
+                                nombre = ej.nombre,
+                                series = ej.series,
+                                repeticiones = ej.repeticiones.split("-", " ").first().toIntOrNull() ?: 0,
+                                descansoSeg = ej.descanso.filter { c -> c.isDigit() }.toIntOrNull() ?: 60,
+                                grupoMuscular = ej.descripcion
                             )
                         }
                         vm.cargarPredeterminada(lista)
@@ -240,13 +242,12 @@ fun EditarRutinaScreen(onVolver: () -> Unit) {
                                 onClick = {
                                     if (nombrePersonal.isNotEmpty()) {
                                         vm.agregar(
-                                            EjercicioPersonal(
+                                            EjercicioDto(
                                                 nombre = nombrePersonal,
                                                 series = seriesPersonal.toIntOrNull() ?: 3,
-                                                repeticiones = repsPersonal,
-                                                descanso = descansoPersonal,
-                                                descripcion = descripcionPersonal,
-                                                orden = misEjercicios.size
+                                                repeticiones = repsPersonal.split("-", " ").first().toIntOrNull() ?: 0,
+                                                descansoSeg = descansoPersonal.filter { c -> c.isDigit() }.toIntOrNull() ?: 60,
+                                                grupoMuscular = descripcionPersonal
                                             )
                                         )
                                         nombrePersonal = ""; seriesPersonal = "3"; repsPersonal = "12"
@@ -297,10 +298,12 @@ fun EditarRutinaScreen(onVolver: () -> Unit) {
                     onAnadir = {
                         if (!yaEnRutina) {
                             vm.agregar(
-                                EjercicioPersonal(
-                                    nombre = ej.nombre, series = ej.series,
-                                    repeticiones = ej.repeticiones, descanso = ej.descanso,
-                                    descripcion = ej.descripcion, orden = misEjercicios.size
+                                EjercicioDto(
+                                    nombre = ej.nombre,
+                                    series = ej.series,
+                                    repeticiones = ej.repeticiones.split("-", " ").first().toIntOrNull() ?: 0,
+                                    descansoSeg = ej.descanso.filter { c -> c.isDigit() }.toIntOrNull() ?: 60,
+                                    grupoMuscular = ej.descripcion
                                 )
                             )
                         }
@@ -325,16 +328,16 @@ fun EditarRutinaScreen(onVolver: () -> Unit) {
 
 @Composable
 private fun TarjetaEjercicioEditable(
-    ejercicio: EjercicioPersonal,
+    ejercicio: EjercicioDto,
     expandido: Boolean,
     onToggleExpand: () -> Unit,
-    onActualizar: (EjercicioPersonal) -> Unit,
+    onActualizar: (EjercicioDto) -> Unit,
     onEliminar: () -> Unit
 ) {
     val strings = LocalAppStrings.current
     var series by remember(ejercicio.id) { mutableStateOf(ejercicio.series.toString()) }
-    var reps by remember(ejercicio.id) { mutableStateOf(ejercicio.repeticiones) }
-    var descanso by remember(ejercicio.id) { mutableStateOf(ejercicio.descanso) }
+    var reps by remember(ejercicio.id) { mutableStateOf(ejercicio.repeticiones.toString()) }
+    var descanso by remember(ejercicio.id) { mutableStateOf("${ejercicio.descansoSeg}s") }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -349,7 +352,7 @@ private fun TarjetaEjercicioEditable(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(ejercicio.nombre, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     Text(
-                        "${ejercicio.series} ${strings.seriesChip} · ${ejercicio.repeticiones} ${strings.repsChip} · ${ejercicio.descanso}",
+                        "${ejercicio.series} ${strings.seriesChip} · ${ejercicio.repeticiones} ${strings.repsChip} · ${ejercicio.descansoSeg}s",
                         color = Color.White.copy(alpha = 0.55f), fontSize = 12.sp
                     )
                 }
@@ -372,8 +375,8 @@ private fun TarjetaEjercicioEditable(
                             onActualizar(
                                 ejercicio.copy(
                                     series = series.toIntOrNull() ?: ejercicio.series,
-                                    repeticiones = reps,
-                                    descanso = descanso
+                                    repeticiones = reps.split("-", " ").first().toIntOrNull() ?: ejercicio.repeticiones,
+                                    descansoSeg = descanso.filter { c -> c.isDigit() }.toIntOrNull() ?: ejercicio.descansoSeg
                                 )
                             )
                             onToggleExpand()

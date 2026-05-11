@@ -3,84 +3,63 @@ package com.example.fitme.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fitme.data.AppDatabase
-import com.example.fitme.data.entity.CheckDiario
-import kotlinx.coroutines.flow.SharingStarted
+import com.example.fitme.data.UserPreferences
+import com.example.fitme.data.api.RachaDto
+import com.example.fitme.data.api.RetrofitClient
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 class CheckRachaViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val dao = AppDatabase.obtenerInstancia(application).checkDiarioDao()
+    private val prefs = UserPreferences(application)
 
-    val checks: StateFlow<List<CheckDiario>> = dao.obtenerTodos()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _racha = MutableStateFlow(RachaDto())
+    val racha: StateFlow<RachaDto> = _racha.asStateFlow()
+
+    init {
+        cargarRacha()
+    }
+
+    private fun cargarRacha() {
+        viewModelScope.launch {
+            try {
+                _racha.value = RetrofitClient.api.getRacha(prefs.usuarioId)
+            } catch (_: Exception) {}
+        }
+    }
 
     fun guardarCheck(ejercicioHecho: Boolean, dietaHecha: Boolean) {
-        val fecha = fechaHoy()
+        if (!ejercicioHecho && !dietaHecha) return
+        val hoy = fechaHoy()
+        val actual = _racha.value
+        val nuevosDias = when (actual.ultimaActividad) {
+            hoy -> actual.diasConsecutivos
+            ayer() -> actual.diasConsecutivos + 1
+            else -> 1
+        }
+        val nuevaMax = maxOf(nuevosDias, actual.rachaMaxima)
         viewModelScope.launch {
-            dao.insertar(CheckDiario(fecha = fecha, ejercicioHecho = ejercicioHecho, dietaHecha = dietaHecha))
+            try {
+                _racha.value = RetrofitClient.api.updateRacha(
+                    prefs.usuarioId,
+                    RachaDto(diasConsecutivos = nuevosDias, ultimaActividad = hoy, rachaMaxima = nuevaMax)
+                )
+            } catch (_: Exception) {}
         }
     }
 
-    fun calcularRachaActual(lista: List<CheckDiario>): Int {
-        if (lista.isEmpty()) return 0
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val fechasConCheck = lista
-            .filter { it.ejercicioHecho || it.dietaHecha }
-            .map { sdf.parse(it.fecha) }
-            .filterNotNull()
-            .sortedDescending()
-
-        if (fechasConCheck.isEmpty()) return 0
-
-        val cal = Calendar.getInstance()
-        cal.time = fechasConCheck[0]
-        val hoy = Calendar.getInstance()
-
-        // Si el último check no es de hoy ni de ayer, la racha está rota
-        val difDias = ((hoy.timeInMillis - cal.timeInMillis) / 86400000L).toInt()
-        if (difDias > 1) return 0
-
-        var racha = 1
-        for (i in 1 until fechasConCheck.size) {
-            val anterior = Calendar.getInstance().apply { time = fechasConCheck[i - 1] }
-            val actual = Calendar.getInstance().apply { time = fechasConCheck[i] }
-            val diff = ((anterior.timeInMillis - actual.timeInMillis) / 86400000L).toInt()
-            if (diff == 1) racha++ else break
-        }
-        return racha
-    }
-
-    fun calcularMejorRacha(lista: List<CheckDiario>): Int {
-        if (lista.isEmpty()) return 0
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val fechas = lista
-            .filter { it.ejercicioHecho || it.dietaHecha }
-            .map { sdf.parse(it.fecha) }
-            .filterNotNull()
-            .sortedDescending()
-
-        if (fechas.isEmpty()) return 0
-
-        var mejor = 1
-        var actual = 1
-        for (i in 1 until fechas.size) {
-            val anterior = Calendar.getInstance().apply { time = fechas[i - 1] }
-            val curr = Calendar.getInstance().apply { time = fechas[i] }
-            val diff = ((anterior.timeInMillis - curr.timeInMillis) / 86400000L).toInt()
-            if (diff == 1) {
-                actual++
-                if (actual > mejor) mejor = actual
-            } else {
-                actual = 1
-            }
-        }
-        return mejor
-    }
+    fun calcularRachaActual(): Int = _racha.value.diasConsecutivos
+    fun calcularMejorRacha(): Int = _racha.value.rachaMaxima
 
     fun fechaHoy(): String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+    private fun ayer(): String {
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DAY_OF_YEAR, -1)
+        return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
+    }
 }

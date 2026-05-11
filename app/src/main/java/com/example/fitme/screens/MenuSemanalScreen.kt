@@ -17,6 +17,7 @@ import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.data.UserPreferences
+import com.example.fitme.data.api.DiaMenuDto
 import com.example.fitme.viewmodel.MenuPersonalViewModel
 
 data class ComidaDia(val nombre: String, val calorias: Int, val proteinas: Int)
@@ -30,31 +31,27 @@ fun MenuSemanalScreen(onEditarMenu: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
     val vm: MenuPersonalViewModel = viewModel()
-    val comidasPersonales by vm.comidasPersonales.collectAsState()
+    val diasMenu by vm.diasMenu.collectAsState()
 
-    val menu = remember(comidasPersonales, prefs.objetivo) {
-        if (comidasPersonales.isNotEmpty()) {
-            val base = generarMenu(prefs.objetivo)
-            DIAS_SEMANA.map { dia ->
-                val base_dia = base.find { it.dia == dia }
-                fun comidaParaMomento(momento: String, baseComida: ComidaDia): ComidaDia {
-                    val personal = comidasPersonales.find { it.dia == dia && it.momento == momento }
-                    return if (personal != null) ComidaDia(personal.nombre, personal.calorias, personal.proteinas)
-                    else baseComida
-                }
+    val menu = remember(diasMenu, prefs.objetivo) {
+        val base = generarMenu(prefs.objetivo)
+        if (diasMenu.isNotEmpty()) {
+            DIAS_SEMANA.mapIndexed { idx, diaNombre ->
+                val dto = diasMenu.firstOrNull { it.diaSemana == idx }
+                val baseDia = base.find { it.dia == diaNombre }
                 DiaMenu(
-                    dia = dia,
-                    desayuno = comidaParaMomento("desayuno", base_dia?.desayuno ?: ComidaDia("Sin configurar", 0, 0)),
-                    almuerzo = comidaParaMomento("almuerzo", base_dia?.almuerzo ?: ComidaDia("Sin configurar", 0, 0)),
-                    cena = comidaParaMomento("cena", base_dia?.cena ?: ComidaDia("Sin configurar", 0, 0))
+                    dia = diaNombre,
+                    desayuno = if (dto?.desayuno != null) ComidaDia(dto.desayuno, dto.kcalTotales ?: 0, 0) else (baseDia?.desayuno ?: ComidaDia("Sin configurar", 0, 0)),
+                    almuerzo = if (dto?.almuerzo != null) ComidaDia(dto.almuerzo, 0, 0) else (baseDia?.almuerzo ?: ComidaDia("Sin configurar", 0, 0)),
+                    cena = if (dto?.cena != null) ComidaDia(dto.cena, 0, 0) else (baseDia?.cena ?: ComidaDia("Sin configurar", 0, 0))
                 )
             }
         } else {
-            generarMenu(prefs.objetivo)
+            base
         }
     }
 
-    val tieneMenuPersonal = comidasPersonales.isNotEmpty()
+    val tieneMenuPersonal = diasMenu.isNotEmpty()
 
     GymBackground {
         LazyColumn(

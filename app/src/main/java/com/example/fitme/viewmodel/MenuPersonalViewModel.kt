@@ -3,29 +3,81 @@ package com.example.fitme.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fitme.data.AppDatabase
-import com.example.fitme.data.entity.ComidaPersonal
-import kotlinx.coroutines.flow.SharingStarted
+import com.example.fitme.data.UserPreferences
+import com.example.fitme.data.api.DiaMenuDto
+import com.example.fitme.data.api.MenuSemanalDto
+import com.example.fitme.data.api.RetrofitClient
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.DayOfWeek
+import java.time.LocalDate
 
 class MenuPersonalViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val dao = AppDatabase.obtenerInstancia(application).comidaPersonalDao()
+    private val prefs = UserPreferences(application)
 
-    val comidasPersonales: StateFlow<List<ComidaPersonal>> = dao.obtenerTodas()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _diasMenu = MutableStateFlow<List<DiaMenuDto>>(emptyList())
+    val diasMenu: StateFlow<List<DiaMenuDto>> = _diasMenu.asStateFlow()
 
-    fun guardarComida(comida: ComidaPersonal) {
-        viewModelScope.launch { dao.insertar(comida) }
+    private val _menuActual = MutableStateFlow<MenuSemanalDto?>(null)
+    val menuActual: StateFlow<MenuSemanalDto?> = _menuActual.asStateFlow()
+
+    init {
+        cargarMenuSemana()
     }
 
-    fun guardarTodo(comidas: List<ComidaPersonal>) {
-        viewModelScope.launch { comidas.forEach { dao.insertar(it) } }
+    private fun cargarMenuSemana() {
+        viewModelScope.launch {
+            try {
+                val menus = RetrofitClient.api.getMenus(prefs.usuarioId)
+                val hoy = LocalDate.now()
+                val menu = menus.firstOrNull {
+                    val inicio = LocalDate.parse(it.semanaInicio)
+                    val fin = LocalDate.parse(it.semanaFin)
+                    !hoy.isBefore(inicio) && !hoy.isAfter(fin)
+                } ?: crearMenuSemanaActual()
+                _menuActual.value = menu
+                menu?.let { _diasMenu.value = RetrofitClient.api.getDiasMenu(it.id) }
+            } catch (_: Exception) {}
+        }
+    }
+
+    private suspend fun crearMenuSemanaActual(): MenuSemanalDto? {
+        val hoy = LocalDate.now()
+        val inicio = hoy.with(DayOfWeek.MONDAY)
+        val fin = inicio.plusDays(6)
+        return try {
+            RetrofitClient.api.addMenu(
+                prefs.usuarioId,
+                MenuSemanalDto(semanaInicio = inicio.toString(), semanaFin = fin.toString())
+            )
+        } catch (_: Exception) { null }
+    }
+
+    fun guardarDia(dia: DiaMenuDto) {
+        viewModelScope.launch {
+            try {
+                val menuId = _menuActual.value?.id ?: return@launch
+                val existente = _diasMenu.value.firstOrNull { it.diaSemana == dia.diaSemana }
+                if (existente != null) {
+                    RetrofitClient.api.updateDiaMenu(existente.id, dia.copy(id = existente.id, menuId = menuId))
+                } else {
+                    RetrofitClient.api.addDiaMenu(menuId, dia.copy(menuId = menuId))
+                }
+                _diasMenu.value = RetrofitClient.api.getDiasMenu(menuId)
+            } catch (_: Exception) {}
+        }
     }
 
     fun limpiar() {
-        viewModelScope.launch { dao.limpiarTodo() }
+        viewModelScope.launch {
+            try {
+                val menuId = _menuActual.value?.id ?: return@launch
+                _diasMenu.value.forEach { RetrofitClient.api.deleteDiaMenu(it.id) }
+                _diasMenu.value = emptyList()
+            } catch (_: Exception) {}
+        }
     }
 }

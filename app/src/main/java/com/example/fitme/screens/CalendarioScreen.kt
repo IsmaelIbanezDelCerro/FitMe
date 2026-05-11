@@ -25,7 +25,7 @@ import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.LocalIsSpanish
 import com.example.fitme.data.UserPreferences
-import com.example.fitme.data.entity.RegistroEjercicio
+import com.example.fitme.data.api.EjercicioDto
 import com.example.fitme.viewmodel.MenuPersonalViewModel
 import com.example.fitme.viewmodel.RegistroEjercicioViewModel
 import java.util.Calendar
@@ -37,7 +37,7 @@ fun CalendarioScreen(onVolver: () -> Unit) {
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
     val vmMenu: MenuPersonalViewModel = viewModel()
-    val comidasPersonales by vmMenu.comidasPersonales.collectAsState()
+    val diasMenu by vmMenu.diasMenu.collectAsState()
 
     val now = remember { Calendar.getInstance() }
     var currentYear by remember { mutableStateOf(now.get(Calendar.YEAR)) }
@@ -54,18 +54,7 @@ fun CalendarioScreen(onVolver: () -> Unit) {
 
     val vmRegistro: RegistroEjercicioViewModel = viewModel()
 
-    val registrosDia by produceState<List<RegistroEjercicio>>(
-        initialValue = emptyList(),
-        key1 = diaSeleccionado, key2 = currentMonth, key3 = currentYear
-    ) {
-        val d = diaSeleccionado
-        if (d != null) {
-            val fecha = "%04d-%02d-%02d".format(currentYear, currentMonth + 1, d)
-            vmRegistro.obtenerRegistrosDia(fecha).collect { value = it }
-        } else {
-            value = emptyList()
-        }
-    }
+    val registrosDia by vmRegistro.ejerciciosDia.collectAsState()
 
     val todayYear = now.get(Calendar.YEAR)
     val todayMonth = now.get(Calendar.MONTH)
@@ -81,22 +70,18 @@ fun CalendarioScreen(onVolver: () -> Unit) {
     val dayHeadersEn = listOf("Mo","Tu","We","Th","Fr","Sa","Su")
     val dayHeaders = if (isSpanish) dayHeadersEs else dayHeadersEn
 
-    val menu = remember(comidasPersonales, prefs.objetivo) {
+    val menu = remember(diasMenu, prefs.objetivo) {
         val diasSemana = listOf("Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo")
         val base = generarMenu(prefs.objetivo)
-        if (comidasPersonales.isNotEmpty()) {
-            diasSemana.map { dia ->
-                val baseDia = base.find { it.dia == dia }
-                fun comidaParaMomento(momento: String, baseComida: ComidaDia): ComidaDia {
-                    val personal = comidasPersonales.find { it.dia == dia && it.momento == momento }
-                    return if (personal != null) ComidaDia(personal.nombre, personal.calorias, personal.proteinas)
-                    else baseComida
-                }
+        if (diasMenu.isNotEmpty()) {
+            diasSemana.mapIndexed { idx, diaNombre ->
+                val dto = diasMenu.firstOrNull { it.diaSemana == idx }
+                val baseDia = base.find { it.dia == diaNombre }
                 DiaMenu(
-                    dia = dia,
-                    desayuno = comidaParaMomento("desayuno", baseDia?.desayuno ?: ComidaDia("—", 0, 0)),
-                    almuerzo = comidaParaMomento("almuerzo", baseDia?.almuerzo ?: ComidaDia("—", 0, 0)),
-                    cena = comidaParaMomento("cena", baseDia?.cena ?: ComidaDia("—", 0, 0))
+                    dia = diaNombre,
+                    desayuno = if (dto?.desayuno != null) ComidaDia(dto.desayuno, dto.kcalTotales ?: 0, 0) else (baseDia?.desayuno ?: ComidaDia("—", 0, 0)),
+                    almuerzo = if (dto?.almuerzo != null) ComidaDia(dto.almuerzo, 0, 0) else (baseDia?.almuerzo ?: ComidaDia("—", 0, 0)),
+                    cena = if (dto?.cena != null) ComidaDia(dto.cena, 0, 0) else (baseDia?.cena ?: ComidaDia("—", 0, 0))
                 )
             }
         } else {
@@ -397,7 +382,7 @@ fun CalendarioScreen(onVolver: () -> Unit) {
                                 rutina.ejercicios.forEach { ej ->
                                     TarjetaEjercicioCalendario(
                                         ej = ej,
-                                        registrosHoy = registrosDia.filter { it.nombreEjercicio == ej.nombre },
+                                        registrosHoy = registrosDia.filter { it.nombre == ej.nombre },
                                         onAgregar = {
                                             ejDialog = ej
                                             rutinaNameDialog = rutina.nombre
@@ -503,7 +488,6 @@ fun CalendarioScreen(onVolver: () -> Unit) {
                             Button(
                                 onClick = {
                                     vmRegistro.guardarRegistro(
-                                        fecha = fecha,
                                         nombreRutina = rutinaNameDialog,
                                         nombreEjercicio = ejDialog!!.nombre,
                                         series = dialogSeries.toIntOrNull() ?: 0,
@@ -546,7 +530,7 @@ fun CalendarioScreen(onVolver: () -> Unit) {
 @Composable
 private fun TarjetaEjercicioCalendario(
     ej: Ejercicio,
-    registrosHoy: List<RegistroEjercicio>,
+    registrosHoy: List<EjercicioDto>,
     onAgregar: () -> Unit
 ) {
     Card(
@@ -597,8 +581,9 @@ private fun TarjetaEjercicioCalendario(
                         Text(
                             buildString {
                                 append("${r.series} series")
-                                if (r.repeticiones.isNotBlank()) append(" × ${r.repeticiones} reps")
-                                if (r.pesoKg > 0f) append(" · ${r.pesoKg}kg")
+                                if (r.repeticiones > 0) append(" × ${r.repeticiones} reps")
+                                val pesoKg = r.descansoSeg.toFloat()
+                                if (pesoKg > 0f) append(" · ${pesoKg}kg")
                             },
                             color = Color(0xFF00C853),
                             fontSize = 12.sp,

@@ -18,7 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
-import com.example.fitme.data.entity.EntrenamientoHistorial
+import com.example.fitme.data.api.RutinaDto
 import com.example.fitme.viewmodel.EntrenamientoViewModel
 
 @Composable
@@ -71,7 +71,11 @@ fun HistorialScreen(onVolver: () -> Unit) {
 }
 
 @Composable
-private fun TarjetaHistorial(sesion: EntrenamientoHistorial) {
+private fun TarjetaHistorial(sesion: RutinaDto) {
+    val partes = sesion.objetivo?.split(" · ", limit = 2) ?: emptyList()
+    val duracion = partes.getOrElse(0) { "" }.removeSuffix(" min").trim().toIntOrNull() ?: 0
+    val fecha = partes.getOrElse(1) { "" }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -84,11 +88,11 @@ private fun TarjetaHistorial(sesion: EntrenamientoHistorial) {
             ) { Text("💪", fontSize = 22.sp) }
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(sesion.nombreRutina, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Text(sesion.fecha, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
+                Text(sesion.nombre, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(fecha, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp)
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text("${sesion.duracionMinutos}", color = Color(0xFF00C853), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                Text("$duracion", color = Color(0xFF00C853), fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 Text("min", color = Color.White.copy(alpha = 0.5f), fontSize = 11.sp)
             }
         }
