@@ -52,13 +52,23 @@ class UserPreferences(context: Context) {
     val estaLogueado: Boolean
         get() = usuarioId != -1
 
-    fun cerrarSesion() { prefs.edit().remove("usuario_id").apply() }
+    fun cerrarSesion() {
+        limpiarDatosPerfil()
+        prefs.edit().remove("usuario_id").apply()
+    }
 
     fun guardarCredenciales(usuario: String, password: String, id: Int, nombreUsuario: String) {
         prefs.edit()
             .putString("cred_$usuario", password)
             .putInt("uid_$usuario", id)
             .putString("nombre_$usuario", nombreUsuario)
+            .putString("email_$usuario", email)
+            .putInt("edad_$usuario", edad)
+            .putString("sexo_$usuario", sexo)
+            .putFloat("altura_$usuario", altura)
+            .putFloat("peso_$usuario", pesoActual)
+            .putString("objetivo_$usuario", objetivo)
+            .putInt("dias_$usuario", diasEntrenamiento)
             .apply()
     }
 
@@ -67,9 +77,25 @@ class UserPreferences(context: Context) {
         if (stored != password) return -1
         val id = prefs.getInt("uid_$usuario", -1)
         if (id != -1) {
-            prefs.getString("nombre_$usuario", null)?.let { nombre = it }
+            limpiarDatosPerfil()
+            nombre = prefs.getString("nombre_$usuario", null) ?: usuario
+            prefs.getString("email_$usuario", null)?.let { email = it }
+            prefs.getInt("edad_$usuario", 0).takeIf { it > 0 }?.let { edad = it }
+            prefs.getString("sexo_$usuario", null)?.let { sexo = it }
+            prefs.getFloat("altura_$usuario", 0f).takeIf { it > 0f }?.let { altura = it }
+            prefs.getFloat("peso_$usuario", 0f).takeIf { it > 0f }?.let { pesoActual = it }
+            prefs.getString("objetivo_$usuario", null)?.let { objetivo = it }
+            prefs.getInt("dias_$usuario", 0).takeIf { it > 0 }?.let { diasEntrenamiento = it }
         }
         return id
+    }
+
+    private fun limpiarDatosPerfil() {
+        prefs.edit()
+            .remove("nombre").remove("email").remove("edad").remove("sexo")
+            .remove("altura").remove("peso_actual").remove("objetivo")
+            .remove("alimentos").remove("dias_entrenamiento")
+            .apply()
     }
 
     fun calcularImc(): Float {
