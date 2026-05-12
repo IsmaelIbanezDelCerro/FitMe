@@ -76,7 +76,7 @@ fun GimnasiosScreen(onVolver: () -> Unit) {
             }
             val address = addresses?.firstOrNull()
             if (address == null) {
-                errorMsg = "Ciudad no encontrada"
+                errorMsg = strings.gymNotFound
                 buscando = false
                 return@launch
             }
@@ -97,14 +97,20 @@ fun GimnasiosScreen(onVolver: () -> Unit) {
                 if (gyms.isNotEmpty()) {
                     cm.addItems(gyms)
                     cm.cluster()
-                    val bounds = LatLngBounds.builder()
-                    gyms.forEach { bounds.include(it.latLng) }
-                    cameraPositionState.animate(
-                        CameraUpdateFactory.newLatLngBounds(bounds.build(), 100)
-                    )
+                    if (gyms.size == 1) {
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngZoom(gyms[0].latLng, 15f)
+                        )
+                    } else {
+                        val bounds = LatLngBounds.builder()
+                        gyms.forEach { bounds.include(it.latLng) }
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngBounds(bounds.build(), 100)
+                        )
+                    }
                 } else {
                     cm.cluster()
-                    errorMsg = "No se encontraron gimnasios en $ciudadFinal"
+                    errorMsg = "${strings.gymNoResults} $ciudadFinal"
                 }
             }
             buscando = false
@@ -120,9 +126,11 @@ fun GimnasiosScreen(onVolver: () -> Unit) {
             MapEffect(Unit) { map ->
                 // Carga inicial con los gimnasios del JSON (Madrid)
                 if (initialPlaces.isNotEmpty()) {
-                    val bounds = LatLngBounds.builder()
-                    initialPlaces.forEach { bounds.include(it.latLng) }
-                    map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 20))
+                    map.setOnMapLoadedCallback {
+                        val bounds = LatLngBounds.builder()
+                        initialPlaces.forEach { bounds.include(it.latLng) }
+                        map.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds.build(), 20))
+                    }
                 }
 
                 val clusterManager = ClusterManager<Place>(context, map)
@@ -190,9 +198,9 @@ fun GimnasiosScreen(onVolver: () -> Unit) {
                 OutlinedTextField(
                     value = ciudad,
                     onValueChange = { ciudad = it; errorMsg = "" },
-                    label = { Text("Ciudad", color = Color.White.copy(alpha = 0.7f)) },
+                    label = { Text(strings.gymSearchLabel, color = Color.White.copy(alpha = 0.7f)) },
                     placeholder = {
-                        Text("Ej: Getafe, Barcelona...", color = Color.White.copy(alpha = 0.3f))
+                        Text(strings.gymSearchPlaceholder, color = Color.White.copy(alpha = 0.3f))
                     },
                     singleLine = true,
                     isError = errorMsg.isNotEmpty(),
@@ -236,7 +244,7 @@ fun GimnasiosScreen(onVolver: () -> Unit) {
                         )
                     } else {
                         Text(
-                            "Buscar gimnasios",
+                            strings.gymSearchBtn,
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
