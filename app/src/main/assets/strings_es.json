@@ -225,5 +225,7 @@
   "trainingDaysLabel": "Días de entrenamiento por semana",
   "lowIntensityDesc": "Pocas sesiones · Intensidad alta",
   "medIntensityDesc": "Frecuencia media · Intensidad media",
-  "highIntensityDesc": "Alta frecuencia · Intensidad baja por sesión"
+  "highIntensityDesc": "Alta frecuencia · Intensidad baja por sesión",
+  "passwordMinLengthMsg": "La contraseña debe tener al menos 6 caracteres",
+  "minFoodsMsg": "Selecciona al menos 10 alimentos"
 }

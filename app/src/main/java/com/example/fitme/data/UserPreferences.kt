@@ -79,7 +79,7 @@ class UserPreferences(context: Context) {
 
     fun restaurarPerfil(usuario: String) {
         currentUser = usuario
-        prefs.getString("nombre_$usuario", null)?.let { nombre = it }
+        nombre = prefs.getString("nombre_$usuario", null)?.takeIf { it.isNotEmpty() } ?: usuario
         prefs.getString("email_$usuario", null)?.let { email = it }
         prefs.getInt("edad_$usuario", 0).takeIf { it > 0 }?.let { edad = it }
         prefs.getString("sexo_$usuario", null)?.let { sexo = it }
