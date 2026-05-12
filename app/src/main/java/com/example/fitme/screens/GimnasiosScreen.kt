@@ -295,6 +295,6 @@ private suspend fun fetchGymsFromOverpass(lat: Double, lon: Double): List<Place>
                 city.takeIf { it.isNotEmpty() }
             ).joinToString(", ")
 
-            Place(name, LatLng(placeLat, placeLon), address, 0f)
+            Place(name, LatLng(placeLat, placeLon), address)
         }
     }
