@@ -9,9 +9,9 @@ object RetrofitClient {
     private const val BASE_URL = "http://10.0.2.2:8080/api/"
 
     private val client = OkHttpClient.Builder()
-        .connectTimeout(0, TimeUnit.SECONDS)
-        .readTimeout(0, TimeUnit.SECONDS)
-        .writeTimeout(0, TimeUnit.SECONDS)
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(15, TimeUnit.SECONDS)
         .build()
 
     val api: FitMeApiService by lazy {
