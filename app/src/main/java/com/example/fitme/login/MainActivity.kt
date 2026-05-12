@@ -256,13 +256,6 @@ fun LoginScreen(navController: NavController) {
     Box(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f)))
 
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(24.dp, 40.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-            LanguageToggleButton()
-        }
-
         Column(
             modifier = Modifier
                 .padding(24.dp)
@@ -324,6 +317,7 @@ fun LoginScreen(navController: NavController) {
                     scope.launch {
                         try {
                             val response = RetrofitClient.api.login(LoginRequest(nombre = usuario, password = password))
+                            prefs.restaurarPerfil(usuario)
                             prefs.usuarioId = response.id
                             prefs.nombre = response.nombre
                             prefs.email = response.email
@@ -375,6 +369,13 @@ fun LoginScreen(navController: NavController) {
                 textDecoration = TextDecoration.Underline
             )
             Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(24.dp, 40.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            LanguageToggleButton()
         }
     }
 }
