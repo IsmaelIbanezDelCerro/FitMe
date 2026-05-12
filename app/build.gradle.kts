@@ -62,6 +62,7 @@ dependencies {
     implementation("androidx.browser:browser:1.8.0")
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)
+    implementation(libs.maps.utils)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.crashlytics)
