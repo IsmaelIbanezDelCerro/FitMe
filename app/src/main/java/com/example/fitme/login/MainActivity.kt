@@ -327,7 +327,7 @@ fun LoginScreen(navController: NavController) {
                             prefs.usuarioId = response.id
                             prefs.nombre = response.nombre
                             prefs.email = response.email
-                            prefs.guardarCredenciales(usuario, password, response.id)
+                            prefs.guardarCredenciales(usuario, password, response.id, response.nombre)
                             runCatching {
                                 FirebaseAuth.getInstance()
                                     .signInWithEmailAndPassword(response.email, password)
@@ -506,7 +506,7 @@ fun RegisterScreen(navController: NavController) {
                                         peso.toFloatOrNull()?.let { prefs.pesoActual = it }
                                         altura.toFloatOrNull()?.let { prefs.altura = it }
                                         prefs.diasEntrenamiento = diasEntrenamiento.toInt()
-                                        prefs.guardarCredenciales(usuario, password, response.id)
+                                        prefs.guardarCredenciales(usuario, password, response.id, response.nombre)
                                         runCatching {
                                             FirebaseAuth.getInstance()
                                                 .createUserWithEmailAndPassword(email, password)
