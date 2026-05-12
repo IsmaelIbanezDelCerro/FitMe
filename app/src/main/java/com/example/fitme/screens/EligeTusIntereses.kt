@@ -119,6 +119,8 @@ fun InteresesScreen(navController: NavController) {
         )
     }
 
+    var errorMsg by remember { mutableStateOf("") }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.gym_bg),
@@ -160,10 +162,21 @@ fun InteresesScreen(navController: NavController) {
                 }
             }
 
+            if (errorMsg.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(errorMsg, color = Color(0xFFFF5252), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             Button(
                 onClick = {
-                    navController.navigate("app") {
-                        popUpTo("intereses") { inclusive = true }
+                    if (comidas.count { it.seleccionada } < 10) {
+                        errorMsg = strings.minFoodsMsg
+                    } else {
+                        navController.navigate("app") {
+                            popUpTo("intereses") { inclusive = true }
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(55.dp),

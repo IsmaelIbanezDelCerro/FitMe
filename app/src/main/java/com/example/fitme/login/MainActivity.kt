@@ -318,9 +318,10 @@ fun LoginScreen(navController: NavController) {
                             val response = RetrofitClient.api.login(LoginRequest(nombre = usuario, password = password))
                             prefs.restaurarPerfil(usuario)
                             prefs.usuarioId = response.id
-                            prefs.nombre = response.nombre
-                            prefs.email = response.email
-                            prefs.guardarCredenciales(usuario, password, response.id, response.nombre)
+                            val nombreReal = response.nombre.ifEmpty { usuario }
+                            prefs.nombre = nombreReal
+                            if (response.email.isNotEmpty()) prefs.email = response.email
+                            prefs.guardarCredenciales(usuario, password, response.id, nombreReal)
                             runCatching {
                                 FirebaseAuth.getInstance()
                                     .signInWithEmailAndPassword(response.email, password)
@@ -496,6 +497,7 @@ fun RegisterScreen(navController: NavController) {
                     onClick = {
                         when {
                             !isFormValid -> showError = strings.fillAllRequiredMsg
+                            password.length < 6 -> showError = strings.passwordMinLengthMsg
                             peso.toFloatOrNull() == null -> showError = strings.enterValidWeightMsg
                             altura.toFloatOrNull() == null -> showError = strings.enterValidHeightMsg
                             !esValidaPass(password) -> showError = strings.passErrorMsg
