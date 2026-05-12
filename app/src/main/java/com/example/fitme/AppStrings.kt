@@ -228,7 +228,9 @@ data class AppStrings(
     val trainingDaysLabel: String = "Días de entrenamiento por semana",
     val lowIntensityDesc: String = "Pocas sesiones · Intensidad alta",
     val medIntensityDesc: String = "Frecuencia media · Intensidad media",
-    val highIntensityDesc: String = "Alta frecuencia · Intensidad baja por sesión"
+    val highIntensityDesc: String = "Alta frecuencia · Intensidad baja por sesión",
+    val passwordMinLengthMsg: String = "La contraseña debe tener al menos 6 caracteres",
+    val minFoodsMsg: String = "Selecciona al menos 10 alimentos"
 )
 
 fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
@@ -446,7 +448,9 @@ fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
         trainingDaysLabel = s("trainingDaysLabel", "Días de entrenamiento por semana"),
         lowIntensityDesc = s("lowIntensityDesc", "Pocas sesiones · Intensidad alta"),
         medIntensityDesc = s("medIntensityDesc", "Frecuencia media · Intensidad media"),
-        highIntensityDesc = s("highIntensityDesc", "Alta frecuencia · Intensidad baja por sesión")
+        highIntensityDesc = s("highIntensityDesc", "Alta frecuencia · Intensidad baja por sesión"),
+        passwordMinLengthMsg = s("passwordMinLengthMsg", "La contraseña debe tener al menos 6 caracteres"),
+        minFoodsMsg = s("minFoodsMsg", "Selecciona al menos 10 alimentos")
     )
 }
 

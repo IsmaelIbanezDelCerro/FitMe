@@ -32,7 +32,10 @@ fun ObjetivoCalculadoScreen(onContinuar: () -> Unit) {
     val resultado = remember(imc, strings) { calcularObjetivoPorImc(imc, strings) }
 
     LaunchedEffect(resultado) {
-        if (imc > 0) prefs.objetivo = resultado.objetivoKey
+        if (imc > 0) {
+            prefs.objetivo = resultado.objetivoKey
+            prefs.actualizarPerfilSnapshot()
+        }
     }
 
     val colorImc = when {
