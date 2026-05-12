@@ -198,5 +198,32 @@
   "accountCreatedOkMsg": "Account created successfully!",
   "nowCalculatingGoalMsg": "Now we'll calculate your goal from your BMI",
   "continueRegisterBtn": "Continue →",
-  "alreadyAccountLink": "Already have an account? Login"
+  "alreadyAccountLink": "Already have an account? Login",
+
+  "navCalendario": "Schedule",
+  "navGimnasios": "Gyms",
+  "calendarTitle": "Activity Calendar",
+  "calendarTrainingLabel": "Training",
+  "calendarMealsLabel": "Meals of the day",
+  "cardCalendarioTitle": "Calendar",
+  "cardCalendarioDesc": "Weekly planning",
+  "cardGimnasioTitle": "Gyms",
+  "cardGimnasioDesc": "Find near you",
+  "userAlreadyExistsMsg": "This username is already registered",
+  "loginErrorMsg2": "Invalid username or password",
+
+  "gymSearchLabel": "City",
+  "gymSearchPlaceholder": "E.g.: London, New York...",
+  "gymSearchBtn": "Search gyms",
+  "gymNotFound": "City not found",
+  "gymNoResults": "No gyms found in",
+  "serverErrorMsg": "Server error",
+  "timeoutErrorMsg": "No response from server (timeout)",
+  "connectionErrorMsg": "Cannot connect to server",
+  "emailExistsMsg": "This email is already registered",
+  "fillCredentialsMsg": "Please fill in username and password",
+  "trainingDaysLabel": "Training days per week",
+  "lowIntensityDesc": "Few sessions · High intensity",
+  "medIntensityDesc": "Medium frequency · Medium intensity",
+  "highIntensityDesc": "High frequency · Low intensity per session"
 }
