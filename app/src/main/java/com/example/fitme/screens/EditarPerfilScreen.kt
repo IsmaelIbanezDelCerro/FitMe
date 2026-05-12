@@ -89,6 +89,7 @@ fun EditarPerfilScreen(onVolver: () -> Unit) {
                             edad.toIntOrNull()?.let { prefs.edad = it }
                             if (sexo.isNotEmpty()) prefs.sexo = sexo
                             vm.registrarPeso(pesoF, alturaF)
+                            prefs.actualizarPerfilSnapshot()
                             guardado = true
                         }
                     }
