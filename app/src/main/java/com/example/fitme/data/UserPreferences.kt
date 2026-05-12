@@ -49,27 +49,58 @@ class UserPreferences(context: Context) {
         get() = prefs.getInt("usuario_id", -1)
         set(value) { prefs.edit().putInt("usuario_id", value).apply() }
 
+    var currentUser: String
+        get() = prefs.getString("current_user", "") ?: ""
+        set(value) { prefs.edit().putString("current_user", value).apply() }
+
     val estaLogueado: Boolean
         get() = usuarioId != -1
 
     fun cerrarSesion() {
         limpiarDatosPerfil()
-        prefs.edit().remove("usuario_id").apply()
+        prefs.edit().remove("usuario_id").remove("current_user").apply()
     }
 
     fun guardarCredenciales(usuario: String, password: String, id: Int, nombreUsuario: String) {
-        prefs.edit()
+        currentUser = usuario
+        val editor = prefs.edit()
             .putString("cred_$usuario", password)
             .putInt("uid_$usuario", id)
             .putString("nombre_$usuario", nombreUsuario)
             .putString("email_$usuario", email)
-            .putInt("edad_$usuario", edad)
-            .putString("sexo_$usuario", sexo)
-            .putFloat("altura_$usuario", altura)
-            .putFloat("peso_$usuario", pesoActual)
-            .putString("objetivo_$usuario", objetivo)
-            .putInt("dias_$usuario", diasEntrenamiento)
-            .apply()
+        if (edad > 0) editor.putInt("edad_$usuario", edad)
+        if (sexo.isNotEmpty()) editor.putString("sexo_$usuario", sexo)
+        if (altura > 0f) editor.putFloat("altura_$usuario", altura)
+        if (pesoActual > 0f) editor.putFloat("peso_$usuario", pesoActual)
+        if (objetivo.isNotEmpty()) editor.putString("objetivo_$usuario", objetivo)
+        if (diasEntrenamiento > 0) editor.putInt("dias_$usuario", diasEntrenamiento)
+        editor.apply()
+    }
+
+    fun restaurarPerfil(usuario: String) {
+        currentUser = usuario
+        prefs.getString("nombre_$usuario", null)?.let { nombre = it }
+        prefs.getString("email_$usuario", null)?.let { email = it }
+        prefs.getInt("edad_$usuario", 0).takeIf { it > 0 }?.let { edad = it }
+        prefs.getString("sexo_$usuario", null)?.let { sexo = it }
+        prefs.getFloat("altura_$usuario", 0f).takeIf { it > 0f }?.let { altura = it }
+        prefs.getFloat("peso_$usuario", 0f).takeIf { it > 0f }?.let { pesoActual = it }
+        prefs.getString("objetivo_$usuario", null)?.let { objetivo = it }
+        prefs.getInt("dias_$usuario", 0).takeIf { it > 0 }?.let { diasEntrenamiento = it }
+    }
+
+    fun actualizarPerfilSnapshot() {
+        val u = currentUser.takeIf { it.isNotEmpty() } ?: return
+        val editor = prefs.edit()
+        if (nombre.isNotEmpty()) editor.putString("nombre_$u", nombre)
+        if (email.isNotEmpty()) editor.putString("email_$u", email)
+        if (edad > 0) editor.putInt("edad_$u", edad)
+        if (sexo.isNotEmpty()) editor.putString("sexo_$u", sexo)
+        if (altura > 0f) editor.putFloat("altura_$u", altura)
+        if (pesoActual > 0f) editor.putFloat("peso_$u", pesoActual)
+        if (objetivo.isNotEmpty()) editor.putString("objetivo_$u", objetivo)
+        if (diasEntrenamiento > 0) editor.putInt("dias_$u", diasEntrenamiento)
+        editor.apply()
     }
 
     fun loginLocal(usuario: String, password: String): Int {
@@ -78,14 +109,7 @@ class UserPreferences(context: Context) {
         val id = prefs.getInt("uid_$usuario", -1)
         if (id != -1) {
             limpiarDatosPerfil()
-            nombre = prefs.getString("nombre_$usuario", null) ?: usuario
-            prefs.getString("email_$usuario", null)?.let { email = it }
-            prefs.getInt("edad_$usuario", 0).takeIf { it > 0 }?.let { edad = it }
-            prefs.getString("sexo_$usuario", null)?.let { sexo = it }
-            prefs.getFloat("altura_$usuario", 0f).takeIf { it > 0f }?.let { altura = it }
-            prefs.getFloat("peso_$usuario", 0f).takeIf { it > 0f }?.let { pesoActual = it }
-            prefs.getString("objetivo_$usuario", null)?.let { objetivo = it }
-            prefs.getInt("dias_$usuario", 0).takeIf { it > 0 }?.let { diasEntrenamiento = it }
+            restaurarPerfil(usuario)
         }
         return id
     }
