@@ -54,16 +54,22 @@ class UserPreferences(context: Context) {
 
     fun cerrarSesion() { prefs.edit().remove("usuario_id").apply() }
 
-    fun guardarCredenciales(email: String, password: String, id: Int) {
+    fun guardarCredenciales(usuario: String, password: String, id: Int, nombreUsuario: String) {
         prefs.edit()
-            .putString("cred_$email", password)
-            .putInt("uid_$email", id)
+            .putString("cred_$usuario", password)
+            .putInt("uid_$usuario", id)
+            .putString("nombre_$usuario", nombreUsuario)
             .apply()
     }
 
-    fun loginLocal(email: String, password: String): Int {
-        val stored = prefs.getString("cred_$email", null) ?: return -1
-        return if (stored == password) prefs.getInt("uid_$email", -1) else -1
+    fun loginLocal(usuario: String, password: String): Int {
+        val stored = prefs.getString("cred_$usuario", null) ?: return -1
+        if (stored != password) return -1
+        val id = prefs.getInt("uid_$usuario", -1)
+        if (id != -1) {
+            prefs.getString("nombre_$usuario", null)?.let { nombre = it }
+        }
+        return id
     }
 
     fun calcularImc(): Float {
