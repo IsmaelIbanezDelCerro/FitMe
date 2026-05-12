@@ -225,5 +225,7 @@
   "trainingDaysLabel": "Training days per week",
   "lowIntensityDesc": "Few sessions · High intensity",
   "medIntensityDesc": "Medium frequency · Medium intensity",
-  "highIntensityDesc": "High frequency · Low intensity per session"
+  "highIntensityDesc": "High frequency · Low intensity per session",
+  "passwordMinLengthMsg": "Password must be at least 6 characters",
+  "minFoodsMsg": "Select at least 10 foods"
 }
