@@ -198,5 +198,32 @@
   "accountCreatedOkMsg": "¡Cuenta creada correctamente!",
   "nowCalculatingGoalMsg": "Ahora calcularemos tu objetivo según tu IMC",
   "continueRegisterBtn": "Continuar →",
-  "alreadyAccountLink": "¿Ya tienes cuenta? Inicia sesión"
+  "alreadyAccountLink": "¿Ya tienes cuenta? Inicia sesión",
+
+  "navCalendario": "Agenda",
+  "navGimnasios": "Gym",
+  "calendarTitle": "Calendario de Actividad",
+  "calendarTrainingLabel": "Entrenamiento",
+  "calendarMealsLabel": "Comidas del día",
+  "cardCalendarioTitle": "Calendario",
+  "cardCalendarioDesc": "Planificación semanal",
+  "cardGimnasioTitle": "Gimnasios",
+  "cardGimnasioDesc": "Buscar cerca de ti",
+  "userAlreadyExistsMsg": "Este nombre de usuario ya está registrado",
+  "loginErrorMsg2": "Usuario o contraseña incorrectos",
+
+  "gymSearchLabel": "Ciudad",
+  "gymSearchPlaceholder": "Ej: Getafe, Barcelona...",
+  "gymSearchBtn": "Buscar gimnasios",
+  "gymNotFound": "Ciudad no encontrada",
+  "gymNoResults": "No se encontraron gimnasios en",
+  "serverErrorMsg": "Error del servidor",
+  "timeoutErrorMsg": "Sin respuesta del servidor (timeout)",
+  "connectionErrorMsg": "No se puede conectar al servidor",
+  "emailExistsMsg": "El email ya está registrado",
+  "fillCredentialsMsg": "Rellena usuario y contraseña",
+  "trainingDaysLabel": "Días de entrenamiento por semana",
+  "lowIntensityDesc": "Pocas sesiones · Intensidad alta",
+  "medIntensityDesc": "Frecuencia media · Intensidad media",
+  "highIntensityDesc": "Alta frecuencia · Intensidad baja por sesión"
 }

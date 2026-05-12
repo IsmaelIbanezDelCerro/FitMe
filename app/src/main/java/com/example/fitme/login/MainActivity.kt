@@ -309,7 +309,7 @@ fun LoginScreen(navController: NavController) {
             Button(
                 onClick = {
                     if (usuario.isEmpty() || password.isEmpty()) {
-                        errorMsg = "Rellena email y contraseña"
+                        errorMsg = strings.fillCredentialsMsg
                         return@Button
                     }
                     errorMsg = ""
@@ -336,12 +336,12 @@ fun LoginScreen(navController: NavController) {
                             }
                             navController.navigate("app") { popUpTo("login") { inclusive = true } }
                         } catch (e: retrofit2.HttpException) {
-                            errorMsg = if (e.code() == 401) "Email o contraseña incorrectos"
-                                       else "Error del servidor (${e.code()})"
+                            errorMsg = if (e.code() == 401) strings.loginErrorMsg
+                                       else "${strings.serverErrorMsg} (${e.code()})"
                         } catch (e: java.net.SocketTimeoutException) {
-                            errorMsg = "Sin respuesta del servidor (timeout)"
+                            errorMsg = strings.timeoutErrorMsg
                         } catch (e: java.net.ConnectException) {
-                            errorMsg = "No se puede conectar al servidor"
+                            errorMsg = strings.connectionErrorMsg
                         } catch (e: Exception) {
                             FirebaseCrashlytics.getInstance().recordException(e)
                             errorMsg = "Error: ${e.message}"
@@ -430,7 +430,7 @@ fun RegisterScreen(navController: NavController) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Días de entrenamiento por semana", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                    Text(strings.trainingDaysLabel, color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                     Text("${diasEntrenamiento.toInt()} días", color = Color(0xFF00C853), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
                 Slider(
@@ -447,9 +447,9 @@ fun RegisterScreen(navController: NavController) {
                 )
                 Text(
                     text = when {
-                        diasEntrenamiento.toInt() <= 2 -> "Pocas sesiones · Intensidad alta"
-                        diasEntrenamiento.toInt() <= 4 -> "Frecuencia media · Intensidad media"
-                        else -> "Alta frecuencia · Intensidad baja por sesión"
+                        diasEntrenamiento.toInt() <= 2 -> strings.lowIntensityDesc
+                        diasEntrenamiento.toInt() <= 4 -> strings.medIntensityDesc
+                        else -> strings.highIntensityDesc
                     },
                     color = Color.White.copy(alpha = 0.55f),
                     fontSize = 12.sp
@@ -516,13 +516,13 @@ fun RegisterScreen(navController: NavController) {
                                         registroExitoso = true
                                     } catch (e: retrofit2.HttpException) {
                                         showError = when (e.code()) {
-                                            409, 400 -> "El email ya está registrado"
-                                            else -> "Error del servidor (${e.code()})"
+                                            409, 400 -> strings.emailExistsMsg
+                                            else -> "${strings.serverErrorMsg} (${e.code()})"
                                         }
                                     } catch (e: java.net.SocketTimeoutException) {
-                                        showError = "Sin respuesta del servidor (timeout)"
+                                        showError = strings.timeoutErrorMsg
                                     } catch (e: java.net.ConnectException) {
-                                        showError = "No se puede conectar al servidor"
+                                        showError = strings.connectionErrorMsg
                                     } catch (e: Exception) {
                                         FirebaseCrashlytics.getInstance().recordException(e)
                                         showError = "Error: ${e.message}"

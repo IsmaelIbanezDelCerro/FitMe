@@ -214,7 +214,21 @@ data class AppStrings(
     val cardGimnasioTitle: String = "Gimnasios",
     val cardGimnasioDesc: String = "Buscar cerca de ti",
     val userAlreadyExistsMsg: String = "Este nombre de usuario ya está registrado",
-    val loginErrorMsg2: String = "Usuario o contraseña incorrectos"
+    val loginErrorMsg2: String = "Usuario o contraseña incorrectos",
+    val gymSearchLabel: String = "Ciudad",
+    val gymSearchPlaceholder: String = "Ej: Getafe, Barcelona...",
+    val gymSearchBtn: String = "Buscar gimnasios",
+    val gymNotFound: String = "Ciudad no encontrada",
+    val gymNoResults: String = "No se encontraron gimnasios en",
+    val serverErrorMsg: String = "Error del servidor",
+    val timeoutErrorMsg: String = "Sin respuesta del servidor (timeout)",
+    val connectionErrorMsg: String = "No se puede conectar al servidor",
+    val emailExistsMsg: String = "El email ya está registrado",
+    val fillCredentialsMsg: String = "Rellena usuario y contraseña",
+    val trainingDaysLabel: String = "Días de entrenamiento por semana",
+    val lowIntensityDesc: String = "Pocas sesiones · Intensidad alta",
+    val medIntensityDesc: String = "Frecuencia media · Intensidad media",
+    val highIntensityDesc: String = "Alta frecuencia · Intensidad baja por sesión"
 )
 
 fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
@@ -418,7 +432,21 @@ fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
         cardGimnasioTitle = s("cardGimnasioTitle", "Gimnasios"),
         cardGimnasioDesc = s("cardGimnasioDesc", "Buscar cerca de ti"),
         userAlreadyExistsMsg = s("userAlreadyExistsMsg", "Este nombre de usuario ya está registrado"),
-        loginErrorMsg2 = s("loginErrorMsg2", "Usuario o contraseña incorrectos")
+        loginErrorMsg2 = s("loginErrorMsg2", "Usuario o contraseña incorrectos"),
+        gymSearchLabel = s("gymSearchLabel", "Ciudad"),
+        gymSearchPlaceholder = s("gymSearchPlaceholder", "Ej: Getafe, Barcelona..."),
+        gymSearchBtn = s("gymSearchBtn", "Buscar gimnasios"),
+        gymNotFound = s("gymNotFound", "Ciudad no encontrada"),
+        gymNoResults = s("gymNoResults", "No se encontraron gimnasios en"),
+        serverErrorMsg = s("serverErrorMsg", "Error del servidor"),
+        timeoutErrorMsg = s("timeoutErrorMsg", "Sin respuesta del servidor (timeout)"),
+        connectionErrorMsg = s("connectionErrorMsg", "No se puede conectar al servidor"),
+        emailExistsMsg = s("emailExistsMsg", "El email ya está registrado"),
+        fillCredentialsMsg = s("fillCredentialsMsg", "Rellena usuario y contraseña"),
+        trainingDaysLabel = s("trainingDaysLabel", "Días de entrenamiento por semana"),
+        lowIntensityDesc = s("lowIntensityDesc", "Pocas sesiones · Intensidad alta"),
+        medIntensityDesc = s("medIntensityDesc", "Frecuencia media · Intensidad media"),
+        highIntensityDesc = s("highIntensityDesc", "Alta frecuencia · Intensidad baja por sesión")
     )
 }
 
