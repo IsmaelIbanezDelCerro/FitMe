@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FitMe"
         android:usesCleartextTraffic="true">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="${GOOGLE_MAPS_API_KEY}" />
         <activity
             android:name=".login.MainActivity"
             android:exported="true"
