@@ -18,7 +18,7 @@ class MarkerInfoWindowAdapter(
         view.findViewById<TextView>(R.id.text_view_title).text = place.name
         view.findViewById<TextView>(R.id.text_view_address).text = place.address
         view.findViewById<TextView>(R.id.text_view_rating).text =
-            "Rating: %.2f".format(place.rating)
+            if (place.rating > 0f) "⭐ %.1f / 5".format(place.rating) else "Sin valoración"
         return view
     }
 
