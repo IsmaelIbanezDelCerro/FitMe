@@ -214,7 +214,7 @@ data class AppStrings(
     val cardGimnasioTitle: String = "Gimnasios",
     val cardGimnasioDesc: String = "Buscar cerca de ti",
     val userAlreadyExistsMsg: String = "Este nombre de usuario ya está registrado",
-    val loginErrorMsg2: String = "Usuario o contraseña incorrectos"
+    val passErrorMsg: String = "La contraseña debe tener un formato de 6 caracteres, al menos una letra mayúscula y un caracter especial (Ejm: ~?.*)"
 )
 
 fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
@@ -418,13 +418,13 @@ fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
         cardGimnasioTitle = s("cardGimnasioTitle", "Gimnasios"),
         cardGimnasioDesc = s("cardGimnasioDesc", "Buscar cerca de ti"),
         userAlreadyExistsMsg = s("userAlreadyExistsMsg", "Este nombre de usuario ya está registrado"),
-        loginErrorMsg2 = s("loginErrorMsg2", "Usuario o contraseña incorrectos")
+        passErrorMsg = s("passErrorMsg", "La contraseña debe tener un formato de 6 caracteres, al menos una letra mayúscula y un caracter especial (Ejm: ~?.*)")
     )
 }
 
 val LocalAppStrings = compositionLocalOf { AppStrings() }
 val LocalIsSpanish = compositionLocalOf { true }
-val LocalOnToggleLanguage = compositionLocalOf<() -> Unit> { {} }
+val LocalOnToggleLanguage = compositionLocalOf { {} }
 
 @Composable
 fun LanguageToggleButton(modifier: Modifier = Modifier) {

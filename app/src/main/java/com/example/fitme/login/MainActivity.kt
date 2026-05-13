@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.*
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.text.font.FontWeight
@@ -336,11 +335,11 @@ fun LoginScreen(navController: NavController) {
                             }
                             navController.navigate("app") { popUpTo("login") { inclusive = true } }
                         } catch (e: retrofit2.HttpException) {
-                            errorMsg = if (e.code() == 401) "Email o contraseña incorrectos"
+                            errorMsg = if (e.code() == 401) strings.loginErrorMsg
                                        else "Error del servidor (${e.code()})"
-                        } catch (e: java.net.SocketTimeoutException) {
+                        } catch (_: java.net.SocketTimeoutException) {
                             errorMsg = "Sin respuesta del servidor (timeout)"
-                        } catch (e: java.net.ConnectException) {
+                        } catch (_: java.net.ConnectException) {
                             errorMsg = "No se puede conectar al servidor"
                         } catch (e: Exception) {
                             FirebaseCrashlytics.getInstance().recordException(e)
@@ -377,6 +376,21 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+fun esValidaPass(pass: String): Boolean {
+    // 1. Que tenga exactamente 6 caracteres
+    if (pass.length != 6) return false
+
+    // 2. Que al menos uno sea una letra MAYÚSCULA
+    // El patrón "[A-Z]" busca si existe al menos una letra de la A a la Z
+    if (!Regex("[A-Z]").containsMatchIn(pass)) return false
+
+    // 3. Que al menos tenga un carácter ESPECIAL
+    // El patrón "[^A-Za-z0-9]" busca cualquier cosa que no sea letra ni número
+    if (!Regex("[^A-Za-z0-9]").containsMatchIn(pass)) return false
+
+    return true
 }
 
 @Composable
@@ -483,6 +497,7 @@ fun RegisterScreen(navController: NavController) {
                             !isFormValid -> showError = strings.fillAllRequiredMsg
                             peso.toFloatOrNull() == null -> showError = strings.enterValidWeightMsg
                             altura.toFloatOrNull() == null -> showError = strings.enterValidHeightMsg
+                            !esValidaPass(password) -> showError = strings.passErrorMsg
                             else -> {
                                 isLoading = true
                                 showError = ""
@@ -519,9 +534,9 @@ fun RegisterScreen(navController: NavController) {
                                             409, 400 -> "El email ya está registrado"
                                             else -> "Error del servidor (${e.code()})"
                                         }
-                                    } catch (e: java.net.SocketTimeoutException) {
+                                    } catch (_: java.net.SocketTimeoutException) {
                                         showError = "Sin respuesta del servidor (timeout)"
-                                    } catch (e: java.net.ConnectException) {
+                                    } catch (_: java.net.ConnectException) {
                                         showError = "No se puede conectar al servidor"
                                     } catch (e: Exception) {
                                         FirebaseCrashlytics.getInstance().recordException(e)
