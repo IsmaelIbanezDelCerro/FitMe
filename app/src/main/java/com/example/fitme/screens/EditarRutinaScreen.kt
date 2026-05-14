@@ -21,11 +21,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
+import com.example.fitme.LocalIsSpanish
 import com.example.fitme.data.UserPreferences
 import com.example.fitme.data.api.EjercicioDto
 import com.example.fitme.viewmodel.RutinaPersonalViewModel
 
-val CATALOGO_EJERCICIOS: List<Ejercicio> = listOf(
+val CATALOGO_EJERCICIOS_ES: List<Ejercicio> = listOf(
     // Pecho
     Ejercicio("Press de banca", 4, "8-10", "90 seg", "Pectoral mayor — agarre medio"),
     Ejercicio("Press inclinado con mancuernas", 3, "10-12", "75 seg", "Pectoral superior"),
@@ -84,13 +85,77 @@ val CATALOGO_EJERCICIOS: List<Ejercicio> = listOf(
     Ejercicio("Rotación torácica", 2, "10 por lado", "30 seg", "Movilidad de columna")
 )
 
+val CATALOGO_EJERCICIOS_EN: List<Ejercicio> = listOf(
+    // Chest
+    Ejercicio("Bench Press", 4, "8-10", "90 seg", "Pectoralis major — medium grip"),
+    Ejercicio("Incline Dumbbell Press", 3, "10-12", "75 seg", "Upper chest"),
+    Ejercicio("Decline Press", 3, "10-12", "75 seg", "Lower chest"),
+    Ejercicio("Dips", 3, "To failure", "60 seg", "Lower chest and triceps"),
+    Ejercicio("Dumbbell Flyes", 3, "12-15", "60 seg", "Chest stretch"),
+    Ejercicio("Push-Ups", 4, "15-20", "45 seg", "No equipment, chest and triceps"),
+    // Back
+    Ejercicio("Pull-Ups", 4, "To failure", "90 seg", "Lats, biceps"),
+    Ejercicio("Barbell Row", 4, "8-10", "90 seg", "Mid-back, traps"),
+    Ejercicio("Lat Pulldown", 3, "12-15", "75 seg", "Lats"),
+    Ejercicio("Dumbbell Row", 3, "10-12 per side", "60 seg", "Unilateral back"),
+    Ejercicio("Deadlift", 4, "6-8", "120 seg", "Full posterior chain"),
+    Ejercicio("Romanian Deadlift", 4, "8-10", "90 seg", "Hamstrings and glutes"),
+    // Legs
+    Ejercicio("Squat", 4, "8-10", "120 seg", "Quads, glutes"),
+    Ejercicio("Leg Press", 3, "12-15", "90 seg", "Quads, glutes"),
+    Ejercicio("Dumbbell Lunges", 3, "12 per leg", "75 seg", "Unilateral quads"),
+    Ejercicio("Bulgarian Split Squat", 3, "8 per leg", "90 seg", "Rear foot elevated"),
+    Ejercicio("Lying Leg Curl", 4, "12-15", "75 seg", "Hamstrings"),
+    Ejercicio("Barbell Hip Thrust", 4, "10-12", "90 seg", "Gluteus maximus"),
+    Ejercicio("Calf Raises", 4, "15-20", "60 seg", "Calves"),
+    Ejercicio("Sumo Squat", 4, "12-15", "75 seg", "Adductors and glutes"),
+    // Shoulders
+    Ejercicio("Overhead Press", 4, "8-10", "90 seg", "Front and mid deltoid"),
+    Ejercicio("Dumbbell Shoulder Press", 3, "10-12", "75 seg", "Deltoids"),
+    Ejercicio("Lateral Raises", 4, "12-15", "60 seg", "Mid deltoid"),
+    Ejercicio("Rear Delt Flyes", 3, "15", "60 seg", "Rear deltoid"),
+    // Biceps
+    Ejercicio("Barbell Curl", 4, "10-12", "60 seg", "Biceps brachii"),
+    Ejercicio("Alternating Dumbbell Curl", 3, "12-15", "60 seg", "Biceps and brachioradialis"),
+    Ejercicio("Hammer Curl", 3, "12-15", "60 seg", "Brachioradialis"),
+    Ejercicio("Concentration Curl", 3, "12 per arm", "60 seg", "Biceps peak"),
+    // Triceps
+    Ejercicio("Skull Crushers", 3, "10-12", "75 seg", "Long head of triceps"),
+    Ejercicio("Cable Pushdown", 4, "12-15", "60 seg", "Full triceps"),
+    Ejercicio("Bench Dips", 3, "15", "45 seg", "Bodyweight triceps"),
+    Ejercicio("Tricep Kickbacks", 3, "15", "45 seg", "Lateral head of triceps"),
+    // Core
+    Ejercicio("Plank", 3, "60 seg", "45 seg", "Full core — straight body"),
+    Ejercicio("Side Plank", 3, "45 seg/side", "45 seg", "Obliques"),
+    Ejercicio("Crunches", 3, "20", "45 seg", "Rectus abdominis"),
+    Ejercicio("Leg Raises", 3, "15", "45 seg", "Lower abs"),
+    Ejercicio("Russian Twists", 3, "20 total", "30 seg", "Obliques — with or without weight"),
+    Ejercicio("Dead Bug", 3, "10 per side", "45 seg", "Lumbar stability"),
+    // Cardio / HIIT
+    Ejercicio("Burpees", 4, "15", "30 seg", "Full body — high intensity"),
+    Ejercicio("Mountain Climbers", 4, "30 seg", "15 seg", "Core + cardio"),
+    Ejercicio("Jumping Jacks", 3, "45 seg", "20 seg", "Warm-up or HIIT"),
+    Ejercicio("Jump Squats", 3, "20", "30 seg", "Legs + cardio"),
+    Ejercicio("High Knees", 4, "20 seg", "40 seg", "Maximum speed"),
+    Ejercicio("Box Jumps", 3, "10", "90 seg", "Leg power"),
+    // Mobility
+    Ejercicio("Hip Mobility", 2, "10 per side", "30 seg", "Slow controlled circles"),
+    Ejercicio("Hamstring Stretch", 2, "30 seg/side", "20 seg", "Don't force it"),
+    Ejercicio("Thoracic Rotation", 2, "10 per side", "30 seg", "Spinal mobility")
+)
+
+val CATALOGO_EJERCICIOS = CATALOGO_EJERCICIOS_ES
+
 @Composable
 fun EditarRutinaScreen(onVolver: () -> Unit) {
     val strings = LocalAppStrings.current
+    val isSpanish = LocalIsSpanish.current
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
     val vm: RutinaPersonalViewModel = viewModel(LocalContext.current as androidx.activity.ComponentActivity)
     val misEjercicios by vm.ejercicios.collectAsState()
+
+    val catalogo = if (isSpanish) CATALOGO_EJERCICIOS_ES else CATALOGO_EJERCICIOS_EN
 
     var busqueda by remember { mutableStateOf("") }
     var expandidoId by remember { mutableStateOf<Int?>(null) }
@@ -102,9 +167,9 @@ fun EditarRutinaScreen(onVolver: () -> Unit) {
     var descansoPersonal by remember { mutableStateOf("60 seg") }
     var descripcionPersonal by remember { mutableStateOf("") }
 
-    val catalogoFiltrado = remember(busqueda) {
-        if (busqueda.isEmpty()) CATALOGO_EJERCICIOS
-        else CATALOGO_EJERCICIOS.filter { it.nombre.contains(busqueda, ignoreCase = true) }
+    val catalogoFiltrado = remember(busqueda, isSpanish) {
+        if (busqueda.isEmpty()) catalogo
+        else catalogo.filter { it.nombre.contains(busqueda, ignoreCase = true) }
     }
 
     GymBackground {
@@ -128,7 +193,7 @@ fun EditarRutinaScreen(onVolver: () -> Unit) {
                 }
                 Spacer(modifier = Modifier.height(16.dp))
 
-                val rutinaDefault = obtenerRutinaDia(prefs.diasEntrenamiento)
+                val rutinaDefault = obtenerRutinaDia(prefs.diasEntrenamiento, isSpanish)
                 OutlinedButton(
                     onClick = {
                         val lista = rutinaDefault.ejercicios.map { ej ->
