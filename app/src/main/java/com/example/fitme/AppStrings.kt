@@ -231,7 +231,13 @@ data class AppStrings(
     val medIntensityDesc: String = "Frecuencia media · Intensidad media",
     val highIntensityDesc: String = "Alta frecuencia · Intensidad baja por sesión",
     val passwordMinLengthMsg: String = "La contraseña debe tener al menos 6 caracteres",
-    val minFoodsMsg: String = "Selecciona al menos 10 alimentos"
+    val minFoodsMsg: String = "Selecciona al menos 10 alimentos",
+    val addFoodTitle: String = "Añadir alimento",
+    val selectDayLabel: String = "Día",
+    val selectMealLabel: String = "Momento",
+    val breakfastShort: String = "Desayuno",
+    val lunchShort: String = "Almuerzo",
+    val dinnerShort: String = "Cena"
 )
 
 fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
@@ -452,7 +458,13 @@ fun loadStrings(context: Context, isSpanish: Boolean): AppStrings {
         medIntensityDesc = s("medIntensityDesc", "Frecuencia media · Intensidad media"),
         highIntensityDesc = s("highIntensityDesc", "Alta frecuencia · Intensidad baja por sesión"),
         passwordMinLengthMsg = s("passwordMinLengthMsg", "La contraseña debe tener al menos 6 caracteres"),
-        minFoodsMsg = s("minFoodsMsg", "Selecciona al menos 10 alimentos")
+        minFoodsMsg = s("minFoodsMsg", "Selecciona al menos 10 alimentos"),
+        addFoodTitle = s("addFoodTitle", "Añadir alimento"),
+        selectDayLabel = s("selectDayLabel", "Día"),
+        selectMealLabel = s("selectMealLabel", "Momento"),
+        breakfastShort = s("breakfastShort", "Desayuno"),
+        lunchShort = s("lunchShort", "Almuerzo"),
+        dinnerShort = s("dinnerShort", "Cena")
     )
 }
 

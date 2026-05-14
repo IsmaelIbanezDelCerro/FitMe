@@ -227,5 +227,11 @@
   "medIntensityDesc": "Frecuencia media · Intensidad media",
   "highIntensityDesc": "Alta frecuencia · Intensidad baja por sesión",
   "passwordMinLengthMsg": "La contraseña debe tener al menos 6 caracteres",
-  "minFoodsMsg": "Selecciona al menos 10 alimentos"
+  "minFoodsMsg": "Selecciona al menos 10 alimentos",
+  "addFoodTitle": "Añadir alimento",
+  "selectDayLabel": "Día",
+  "selectMealLabel": "Momento",
+  "breakfastShort": "Desayuno",
+  "lunchShort": "Almuerzo",
+  "dinnerShort": "Cena"
 }
