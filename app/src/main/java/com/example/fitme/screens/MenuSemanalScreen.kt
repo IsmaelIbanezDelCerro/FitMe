@@ -50,9 +50,15 @@ fun MenuSemanalScreen(vm: MenuPersonalViewModel) {
                 val baseDia = base.find { it.dia == diaNombre }
                 DiaMenu(
                     dia = diaNombre,
-                    desayuno = if (dto?.desayuno != null) ComidaDia(dto.desayuno, dto.kcalTotales ?: 0, 0) else (baseDia?.desayuno ?: ComidaDia("—", 0, 0)),
-                    almuerzo = if (dto?.almuerzo != null) ComidaDia(dto.almuerzo, 0, 0) else (baseDia?.almuerzo ?: ComidaDia("—", 0, 0)),
-                    cena = if (dto?.cena != null) ComidaDia(dto.cena, 0, 0) else (baseDia?.cena ?: ComidaDia("—", 0, 0))
+                    desayuno = if (dto?.desayuno != null)
+                        ComidaDia(dto.desayuno, baseDia?.desayuno?.calorias ?: 0, baseDia?.desayuno?.proteinas ?: 0)
+                    else (baseDia?.desayuno ?: ComidaDia("—", 0, 0)),
+                    almuerzo = if (dto?.almuerzo != null)
+                        ComidaDia(dto.almuerzo, baseDia?.almuerzo?.calorias ?: 0, baseDia?.almuerzo?.proteinas ?: 0)
+                    else (baseDia?.almuerzo ?: ComidaDia("—", 0, 0)),
+                    cena = if (dto?.cena != null)
+                        ComidaDia(dto.cena, baseDia?.cena?.calorias ?: 0, baseDia?.cena?.proteinas ?: 0)
+                    else (baseDia?.cena ?: ComidaDia("—", 0, 0))
                 )
             }
         } else {
