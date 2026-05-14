@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.MarkerInfoWindowAdapter
 import com.example.fitme.R
@@ -190,15 +191,22 @@ fun GimnasiosScreen(onVolver: () -> Unit) {
             elevation = CardDefaults.cardElevation(8.dp)
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("🗺️", fontSize = 22.sp)
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        strings.cardGimnasioTitle,
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🗺️", fontSize = 22.sp)
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            strings.cardGimnasioTitle,
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                    LanguageToggleButton()
                 }
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(
