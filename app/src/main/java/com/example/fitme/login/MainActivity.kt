@@ -156,10 +156,7 @@ fun AppShell(onLogout: () -> Unit) {
                     GraficaImcScreen(onVolver = { navController.popBackStack() })
                 }
                 composable("menu_semanal") {
-                    MenuSemanalScreen(vm = menuVm, onEditarMenu = { navController.navigate("editar_menu") })
-                }
-                composable("editar_menu") {
-                    EditarMenuScreen(vm = menuVm, onVolver = { navController.popBackStack() })
+                    MenuSemanalScreen(vm = menuVm)
                 }
                 composable("rutina_dia") {
                     RutinaDelDiaScreen(
