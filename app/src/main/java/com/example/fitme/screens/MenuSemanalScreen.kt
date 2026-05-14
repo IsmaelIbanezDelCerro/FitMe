@@ -29,7 +29,7 @@ else
     listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 @Composable
-fun MenuSemanalScreen(vm: MenuPersonalViewModel, onEditarMenu: () -> Unit) {
+fun MenuSemanalScreen(vm: MenuPersonalViewModel) {
     val strings = LocalAppStrings.current
     val isSpanish = LocalIsSpanish.current
     val context = LocalContext.current
@@ -76,18 +76,7 @@ fun MenuSemanalScreen(vm: MenuPersonalViewModel, onEditarMenu: () -> Unit) {
                             color = Color(0xFF00C853), fontSize = 13.sp, fontWeight = FontWeight.Medium
                         )
                     }
-                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        LanguageToggleButton()
-                        OutlinedButton(
-                            onClick = onEditarMenu,
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF00C853)),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF00C853)),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text(strings.editBtnLabel, fontSize = 12.sp)
-                        }
-                    }
+                    LanguageToggleButton()
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
