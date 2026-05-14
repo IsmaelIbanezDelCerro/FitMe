@@ -20,7 +20,6 @@ import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.data.UserPreferences
 import com.example.fitme.data.api.EjercicioDto
-import com.example.fitme.viewmodel.EntrenamientoViewModel
 import com.example.fitme.viewmodel.RutinaPersonalViewModel
 import java.util.*
 
@@ -47,10 +46,8 @@ fun RutinaDelDiaScreen(onVerHistorial: () -> Unit, onEditarRutina: () -> Unit) {
     val strings = LocalAppStrings.current
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
-    val vmEntrenamiento: EntrenamientoViewModel = viewModel()
     val vmPersonal: RutinaPersonalViewModel = viewModel()
 
-    val historial by vmEntrenamiento.historial.collectAsState()
     val ejerciciosPersonales by vmPersonal.ejercicios.collectAsState()
 
     val tieneRutinaPersonal = ejerciciosPersonales.isNotEmpty()
@@ -58,9 +55,6 @@ fun RutinaDelDiaScreen(onVerHistorial: () -> Unit, onEditarRutina: () -> Unit) {
 
     val nombreRutina = if (tieneRutinaPersonal) strings.myPersonalRoutineLabel else rutinaDefault.nombre
     val duracion = if (tieneRutinaPersonal) ejerciciosPersonales.size * 7 else rutinaDefault.duracionMin
-
-    var completada by remember { mutableStateOf(false) }
-    val yaCompletadaHoy = historial.any { it.nombre == nombreRutina && it.objetivo?.contains(fechaHoyStr()) == true }
 
     GymBackground {
         LazyColumn(
@@ -112,32 +106,6 @@ fun RutinaDelDiaScreen(onVerHistorial: () -> Unit, onEditarRutina: () -> Unit) {
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
-                if (yaCompletadaHoy || completada) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF00C853).copy(alpha = 0.2f))
-                    ) {
-                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("✓", color = Color(0xFF00C853), fontSize = 24.sp)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(strings.trainingDoneTodayMsg, color = Color(0xFF00C853), fontWeight = FontWeight.Bold)
-                        }
-                    }
-                } else {
-                    Button(
-                        onClick = {
-                            vmEntrenamiento.guardarEntrenamiento(nombreRutina, duracion)
-                            completada = true
-                        },
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text(strings.markDoneBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    }
-                }
-                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedButton(
                     onClick = onVerHistorial,
                     modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -189,13 +157,8 @@ fun ChipInfo(texto: String) {
 }
 
 fun obtenerRutinaDia(diasEntrenamiento: Int): Rutina {
-    val dia = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-    val rutinas = when {
-        diasEntrenamiento <= 2 -> rutinasGrupoMuscularAlta
-        diasEntrenamiento <= 4 -> rutinasGrupoMuscularMedia
-        else -> rutinasGrupoMuscularBaja
-    }
-    return rutinas[dia % rutinas.size]
+    val dow = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+    return obtenerRutinaParaDia(diasEntrenamiento, dow)
 }
 
 fun obtenerRutinaParaDia(diasEntrenamiento: Int, dow: Int): Rutina {
@@ -204,7 +167,11 @@ fun obtenerRutinaParaDia(diasEntrenamiento: Int, dow: Int): Rutina {
         diasEntrenamiento <= 4 -> rutinasGrupoMuscularMedia
         else -> rutinasGrupoMuscularBaja
     }
-    return rutinas[dow % rutinas.size]
+    val descanso = rutinas.last()
+    val entrenamiento = rutinas.dropLast(1)
+    // Convierte DAY_OF_WEEK (Dom=1..Sáb=7) a Lunes=1..Domingo=7
+    val dayNumber = (dow + 5) % 7 + 1
+    return if (dayNumber <= diasEntrenamiento) entrenamiento[(dayNumber - 1) % entrenamiento.size] else descanso
 }
 
 fun fechaHoyStr(): String {

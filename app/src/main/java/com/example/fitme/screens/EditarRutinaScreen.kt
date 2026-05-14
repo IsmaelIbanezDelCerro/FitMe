@@ -141,6 +141,7 @@ fun EditarRutinaScreen(onVolver: () -> Unit) {
                             )
                         }
                         vm.cargarPredeterminada(lista)
+                        onVolver()
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF00C853)),
