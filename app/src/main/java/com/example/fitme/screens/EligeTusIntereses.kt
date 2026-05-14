@@ -59,7 +59,8 @@ private fun buildComidas(isSpanish: Boolean) = mutableStateListOf(
     Comida(if (isSpanish) "Kéfir" else "Kefir", listOf("🥛")),
     Comida(if (isSpanish) "Requesón" else "Cottage Cheese", listOf()),
     Comida(if (isSpanish) "Cuajada" else "Curd", listOf("🥛")),
-    Comida(if (isSpanish) "Leche desnatada" else "Skimmed Milk", listOf()),
+    Comida(if (isSpanish) "Mantequilla" else "Butter", listOf("🧈")),
+    Comida(if (isSpanish) "Nata" else "Cream", listOf()),
     // Vegetal / Plant
     Comida(if (isSpanish) "Tofu" else "Tofu", listOf("🌱")),
     Comida(if (isSpanish) "Lentejas" else "Lentils", listOf("🌱")),
@@ -69,6 +70,10 @@ private fun buildComidas(isSpanish: Boolean) = mutableStateListOf(
     Comida(if (isSpanish) "Alubias" else "Beans", listOf()),
     Comida(if (isSpanish) "Espinacas" else "Spinach", listOf()),
     Comida(if (isSpanish) "Brócoli" else "Broccoli", listOf("🌱")),
+    Comida(if (isSpanish) "Aguacate" else "Avocado", listOf("🥑")),
+    Comida(if (isSpanish) "Zanahoria" else "Carrot", listOf("🥕")),
+    Comida(if (isSpanish) "Pimiento" else "Bell Pepper", listOf("🫑")),
+    Comida(if (isSpanish) "Pepino" else "Cucumber", listOf("🥒")),
     // Frutos secos / Nuts
     Comida(if (isSpanish) "Cacahuete" else "Peanut", listOf()),
     Comida(if (isSpanish) "Almendras" else "Almonds", listOf()),
@@ -103,7 +108,12 @@ private fun buildComidas(isSpanish: Boolean) = mutableStateListOf(
     Comida(if (isSpanish) "Batata" else "Sweet Potato", listOf("🍠")),
     Comida(if (isSpanish) "Avena fitness" else "Fitness Oats", listOf()),
     Comida(if (isSpanish) "Plátano" else "Banana", listOf("🍌")),
-    Comida(if (isSpanish) "Creatina" else "Creatine", listOf())
+    Comida(if (isSpanish) "Creatina" else "Creatine", listOf()),
+    Comida(if (isSpanish) "Manzana" else "Apple", listOf("🍎")),
+    Comida(if (isSpanish) "Naranja" else "Orange", listOf("🍊")),
+    Comida(if (isSpanish) "Fresas" else "Strawberries", listOf("🍓")),
+    Comida(if (isSpanish) "Arándanos" else "Blueberries", listOf("🫐")),
+    Comida(if (isSpanish) "Aceite de oliva" else "Olive Oil", listOf())
 )
 
 @Composable
