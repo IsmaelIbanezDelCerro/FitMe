@@ -46,7 +46,7 @@ fun RutinaDelDiaScreen(onVerHistorial: () -> Unit, onEditarRutina: () -> Unit) {
     val strings = LocalAppStrings.current
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
-    val vmPersonal: RutinaPersonalViewModel = viewModel()
+    val vmPersonal: RutinaPersonalViewModel = viewModel(LocalContext.current as androidx.activity.ComponentActivity)
 
     val ejerciciosPersonales by vmPersonal.ejercicios.collectAsState()
 

@@ -89,7 +89,7 @@ fun EditarRutinaScreen(onVolver: () -> Unit) {
     val strings = LocalAppStrings.current
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
-    val vm: RutinaPersonalViewModel = viewModel()
+    val vm: RutinaPersonalViewModel = viewModel(LocalContext.current as androidx.activity.ComponentActivity)
     val misEjercicios by vm.ejercicios.collectAsState()
 
     var busqueda by remember { mutableStateOf("") }
