@@ -12,10 +12,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
+import com.example.fitme.LocalIsSpanish
 import com.example.fitme.data.UserPreferences
 import com.example.fitme.data.api.DiaMenuDto
 import com.example.fitme.viewmodel.MenuPersonalViewModel
@@ -23,27 +23,31 @@ import com.example.fitme.viewmodel.MenuPersonalViewModel
 data class ComidaDia(val nombre: String, val calorias: Int, val proteinas: Int)
 data class DiaMenu(val dia: String, val desayuno: ComidaDia, val almuerzo: ComidaDia, val cena: ComidaDia)
 
-private val DIAS_SEMANA = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+fun diasSemana(isSpanish: Boolean) = if (isSpanish)
+    listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+else
+    listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 @Composable
-fun MenuSemanalScreen(onEditarMenu: () -> Unit) {
+fun MenuSemanalScreen(vm: MenuPersonalViewModel, onEditarMenu: () -> Unit) {
     val strings = LocalAppStrings.current
+    val isSpanish = LocalIsSpanish.current
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
-    val vm: MenuPersonalViewModel = viewModel()
     val diasMenu by vm.diasMenu.collectAsState()
 
-    val menu = remember(diasMenu, prefs.objetivo) {
-        val base = generarMenu(prefs.objetivo)
+    val menu = remember(diasMenu, prefs.objetivo, isSpanish) {
+        val dias = diasSemana(isSpanish)
+        val base = generarMenu(prefs.objetivo, isSpanish)
         if (diasMenu.isNotEmpty()) {
-            DIAS_SEMANA.mapIndexed { idx, diaNombre ->
+            dias.mapIndexed { idx, diaNombre ->
                 val dto = diasMenu.firstOrNull { it.diaSemana == idx }
                 val baseDia = base.find { it.dia == diaNombre }
                 DiaMenu(
                     dia = diaNombre,
-                    desayuno = if (dto?.desayuno != null) ComidaDia(dto.desayuno, dto.kcalTotales ?: 0, 0) else (baseDia?.desayuno ?: ComidaDia("Sin configurar", 0, 0)),
-                    almuerzo = if (dto?.almuerzo != null) ComidaDia(dto.almuerzo, 0, 0) else (baseDia?.almuerzo ?: ComidaDia("Sin configurar", 0, 0)),
-                    cena = if (dto?.cena != null) ComidaDia(dto.cena, 0, 0) else (baseDia?.cena ?: ComidaDia("Sin configurar", 0, 0))
+                    desayuno = if (dto?.desayuno != null) ComidaDia(dto.desayuno, dto.kcalTotales ?: 0, 0) else (baseDia?.desayuno ?: ComidaDia("—", 0, 0)),
+                    almuerzo = if (dto?.almuerzo != null) ComidaDia(dto.almuerzo, 0, 0) else (baseDia?.almuerzo ?: ComidaDia("—", 0, 0)),
+                    cena = if (dto?.cena != null) ComidaDia(dto.cena, 0, 0) else (baseDia?.cena ?: ComidaDia("—", 0, 0))
                 )
             }
         } else {
@@ -130,38 +134,69 @@ private fun FilaComida(momento: String, comida: ComidaDia, proteinSuffix: String
     }
 }
 
-fun generarMenu(objetivo: String): List<DiaMenu> {
+fun generarMenu(objetivo: String, isSpanish: Boolean = true): List<DiaMenu> {
     val esMuscular = objetivo.contains("Muscular", ignoreCase = true)
     val esGrasa = objetivo.contains("Grasa", ignoreCase = true) || objetivo.contains("Peso", ignoreCase = true)
 
-    return listOf(
-        DiaMenu("Lunes",
+    val dias = diasSemana(isSpanish)
+
+    return if (isSpanish) listOf(
+        DiaMenu(dias[0],
             desayuno = if (esMuscular) ComidaDia("Avena con plátano y proteína", 450, 35) else if (esGrasa) ComidaDia("Claras de huevo con espinacas", 220, 28) else ComidaDia("Tostada integral con aguacate", 320, 12),
             almuerzo = if (esMuscular) ComidaDia("Arroz con pechuga de pollo", 620, 50) else if (esGrasa) ComidaDia("Ensalada de atún con garbanzos", 380, 35) else ComidaDia("Pasta integral con verduras", 480, 20),
             cena = if (esMuscular) ComidaDia("Salmón con batata asada", 520, 40) else if (esGrasa) ComidaDia("Merluza al horno con brócoli", 300, 32) else ComidaDia("Lentejas con verduras", 400, 22)),
-        DiaMenu("Martes",
+        DiaMenu(dias[1],
             desayuno = if (esMuscular) ComidaDia("Tortilla de 4 huevos con pan integral", 480, 38) else if (esGrasa) ComidaDia("Yogur natural con nueces", 200, 15) else ComidaDia("Muesli con leche desnatada", 300, 14),
             almuerzo = if (esMuscular) ComidaDia("Ternera con quinoa y espinacas", 650, 55) else if (esGrasa) ComidaDia("Pechuga a la plancha con ensalada", 350, 40) else ComidaDia("Pollo con arroz y verduras", 500, 35),
             cena = if (esMuscular) ComidaDia("Batido de proteína + plátano", 400, 45) else if (esGrasa) ComidaDia("Tofu salteado con espinacas", 280, 22) else ComidaDia("Salmón con ensalada verde", 380, 30)),
-        DiaMenu("Miércoles",
+        DiaMenu(dias[2],
             desayuno = if (esMuscular) ComidaDia("Avena con frutos secos y miel", 500, 20) else if (esGrasa) ComidaDia("Kéfir con semillas de chía", 180, 12) else ComidaDia("Huevos revueltos con tostada", 350, 22),
             almuerzo = if (esMuscular) ComidaDia("Pasta con atún y tomate", 580, 45) else if (esGrasa) ComidaDia("Bacalao con pisto de verduras", 320, 30) else ComidaDia("Garbanzos con verduras salteadas", 420, 18),
             cena = if (esMuscular) ComidaDia("Pechuga a la plancha con arroz", 520, 48) else if (esGrasa) ComidaDia("Gambas al ajillo con ensalada", 260, 28) else ComidaDia("Tortilla francesa con ensalada", 300, 20)),
-        DiaMenu("Jueves",
+        DiaMenu(dias[3],
             desayuno = if (esMuscular) ComidaDia("Pan integral con mantequilla de cacahuete", 460, 22) else if (esGrasa) ComidaDia("Frutas del bosque con requesón", 190, 14) else ComidaDia("Batido de plátano y avena", 320, 10),
             almuerzo = if (esMuscular) ComidaDia("Arroz con pavo y brócoli", 600, 52) else if (esGrasa) ComidaDia("Ensalada de pollo con aguacate", 360, 38) else ComidaDia("Lentejas con arroz", 450, 20),
             cena = if (esMuscular) ComidaDia("Trucha al horno con patata", 490, 42) else if (esGrasa) ComidaDia("Sardinas con ensalada de tomate", 280, 25) else ComidaDia("Sopa de verduras con pollo", 320, 25)),
-        DiaMenu("Viernes",
+        DiaMenu(dias[4],
             desayuno = if (esMuscular) ComidaDia("Batido proteico de fresa", 380, 40) else if (esGrasa) ComidaDia("Huevo pochado con espinacas", 200, 18) else ComidaDia("Tostada con tomate y aceite de oliva", 280, 8),
             almuerzo = if (esMuscular) ComidaDia("Hamburguesa de ternera con arroz", 700, 58) else if (esGrasa) ComidaDia("Salmón con espárragos a la plancha", 340, 36) else ComidaDia("Pollo al curry con arroz", 520, 38),
             cena = if (esMuscular) ComidaDia("Caseína + almendras (antes de dormir)", 350, 30) else if (esGrasa) ComidaDia("Tortilla de claras con champiñones", 240, 26) else ComidaDia("Merluza con verduras al vapor", 300, 28)),
-        DiaMenu("Sábado",
+        DiaMenu(dias[5],
             desayuno = if (esMuscular) ComidaDia("Pancakes de avena con arándanos", 520, 28) else if (esGrasa) ComidaDia("Smoothie verde (espinacas + manzana)", 160, 6) else ComidaDia("Yogur con granola y frutas", 350, 12),
             almuerzo = if (esMuscular) ComidaDia("Paella de pollo y verduras", 680, 48) else if (esGrasa) ComidaDia("Ensalada mediterránea con atún", 320, 30) else ComidaDia("Arroz con verduras y huevo", 450, 18),
             cena = if (esMuscular) ComidaDia("Filete de ternera con quinoa", 560, 52) else if (esGrasa) ComidaDia("Boquerones al horno con ensalada", 270, 24) else ComidaDia("Revuelto de verduras con queso fresco", 310, 16)),
-        DiaMenu("Domingo",
+        DiaMenu(dias[6],
             desayuno = if (esMuscular) ComidaDia("Tortitas proteicas con plátano", 490, 36) else if (esGrasa) ComidaDia("Infusión + kéfir con semillas", 150, 10) else ComidaDia("Tostada integral con huevo y aguacate", 380, 18),
             almuerzo = if (esMuscular) ComidaDia("Pollo asado con batata y brócoli", 640, 55) else if (esGrasa) ComidaDia("Pavo al horno con verduras asadas", 360, 42) else ComidaDia("Cocido de legumbres", 480, 25),
             cena = if (esMuscular) ComidaDia("Salmón + arroz + aceite de oliva", 530, 44) else if (esGrasa) ComidaDia("Revuelto de claras con espárragos", 220, 24) else ComidaDia("Sopa minestrone con pan integral", 330, 14))
+    ) else listOf(
+        DiaMenu(dias[0],
+            desayuno = if (esMuscular) ComidaDia("Oatmeal with banana and protein", 450, 35) else if (esGrasa) ComidaDia("Egg whites with spinach", 220, 28) else ComidaDia("Avocado toast", 320, 12),
+            almuerzo = if (esMuscular) ComidaDia("Rice with chicken breast", 620, 50) else if (esGrasa) ComidaDia("Tuna and chickpea salad", 380, 35) else ComidaDia("Whole wheat pasta with vegetables", 480, 20),
+            cena = if (esMuscular) ComidaDia("Salmon with roasted sweet potato", 520, 40) else if (esGrasa) ComidaDia("Baked hake with broccoli", 300, 32) else ComidaDia("Lentil stew", 400, 22)),
+        DiaMenu(dias[1],
+            desayuno = if (esMuscular) ComidaDia("4-egg omelette with whole wheat bread", 480, 38) else if (esGrasa) ComidaDia("Natural yogurt with walnuts", 200, 15) else ComidaDia("Muesli with skimmed milk", 300, 14),
+            almuerzo = if (esMuscular) ComidaDia("Beef with quinoa and spinach", 650, 55) else if (esGrasa) ComidaDia("Grilled chicken with salad", 350, 40) else ComidaDia("Chicken with rice and vegetables", 500, 35),
+            cena = if (esMuscular) ComidaDia("Protein shake + banana", 400, 45) else if (esGrasa) ComidaDia("Sautéed tofu with spinach", 280, 22) else ComidaDia("Salmon with green salad", 380, 30)),
+        DiaMenu(dias[2],
+            desayuno = if (esMuscular) ComidaDia("Oatmeal with nuts and honey", 500, 20) else if (esGrasa) ComidaDia("Kefir with chia seeds", 180, 12) else ComidaDia("Scrambled eggs on toast", 350, 22),
+            almuerzo = if (esMuscular) ComidaDia("Pasta with tuna and tomato", 580, 45) else if (esGrasa) ComidaDia("Cod with ratatouille", 320, 30) else ComidaDia("Sautéed chickpeas with vegetables", 420, 18),
+            cena = if (esMuscular) ComidaDia("Grilled chicken with rice", 520, 48) else if (esGrasa) ComidaDia("Prawns with salad", 260, 28) else ComidaDia("French omelette with salad", 300, 20)),
+        DiaMenu(dias[3],
+            desayuno = if (esMuscular) ComidaDia("Whole wheat bread with peanut butter", 460, 22) else if (esGrasa) ComidaDia("Forest berries with cottage cheese", 190, 14) else ComidaDia("Banana and oat smoothie", 320, 10),
+            almuerzo = if (esMuscular) ComidaDia("Rice with turkey and broccoli", 600, 52) else if (esGrasa) ComidaDia("Chicken and avocado salad", 360, 38) else ComidaDia("Rice and lentils", 450, 20),
+            cena = if (esMuscular) ComidaDia("Baked trout with potato", 490, 42) else if (esGrasa) ComidaDia("Sardines with tomato salad", 280, 25) else ComidaDia("Vegetable soup with chicken", 320, 25)),
+        DiaMenu(dias[4],
+            desayuno = if (esMuscular) ComidaDia("Strawberry protein shake", 380, 40) else if (esGrasa) ComidaDia("Poached egg with spinach", 200, 18) else ComidaDia("Toast with tomato and olive oil", 280, 8),
+            almuerzo = if (esMuscular) ComidaDia("Beef burger with rice", 700, 58) else if (esGrasa) ComidaDia("Grilled salmon with asparagus", 340, 36) else ComidaDia("Chicken curry with rice", 520, 38),
+            cena = if (esMuscular) ComidaDia("Casein + almonds (before bed)", 350, 30) else if (esGrasa) ComidaDia("Egg white omelette with mushrooms", 240, 26) else ComidaDia("Steamed hake with vegetables", 300, 28)),
+        DiaMenu(dias[5],
+            desayuno = if (esMuscular) ComidaDia("Oat pancakes with blueberries", 520, 28) else if (esGrasa) ComidaDia("Green smoothie (spinach + apple)", 160, 6) else ComidaDia("Yogurt with granola and fruit", 350, 12),
+            almuerzo = if (esMuscular) ComidaDia("Chicken and vegetable paella", 680, 48) else if (esGrasa) ComidaDia("Mediterranean tuna salad", 320, 30) else ComidaDia("Rice with vegetables and egg", 450, 18),
+            cena = if (esMuscular) ComidaDia("Beef steak with quinoa", 560, 52) else if (esGrasa) ComidaDia("Baked anchovies with salad", 270, 24) else ComidaDia("Vegetable scramble with fresh cheese", 310, 16)),
+        DiaMenu(dias[6],
+            desayuno = if (esMuscular) ComidaDia("Protein pancakes with banana", 490, 36) else if (esGrasa) ComidaDia("Infusion + kefir with seeds", 150, 10) else ComidaDia("Whole wheat toast with egg and avocado", 380, 18),
+            almuerzo = if (esMuscular) ComidaDia("Roasted chicken with sweet potato and broccoli", 640, 55) else if (esGrasa) ComidaDia("Baked turkey with roasted vegetables", 360, 42) else ComidaDia("Legume stew", 480, 25),
+            cena = if (esMuscular) ComidaDia("Salmon + rice + olive oil", 530, 44) else if (esGrasa) ComidaDia("Egg white scramble with asparagus", 220, 24) else ComidaDia("Minestrone soup with bread", 330, 14))
     )
 }

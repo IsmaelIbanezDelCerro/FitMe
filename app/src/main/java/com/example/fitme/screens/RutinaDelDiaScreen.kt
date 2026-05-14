@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
+import com.example.fitme.LocalIsSpanish
 import com.example.fitme.data.UserPreferences
 import com.example.fitme.data.api.EjercicioDto
 import com.example.fitme.viewmodel.RutinaPersonalViewModel
@@ -44,6 +45,7 @@ fun EjercicioDto.toEjercicio() = Ejercicio(
 @Composable
 fun RutinaDelDiaScreen(onVerHistorial: () -> Unit, onEditarRutina: () -> Unit) {
     val strings = LocalAppStrings.current
+    val isSpanish = LocalIsSpanish.current
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
     val vmPersonal: RutinaPersonalViewModel = viewModel(LocalContext.current as androidx.activity.ComponentActivity)
@@ -51,7 +53,9 @@ fun RutinaDelDiaScreen(onVerHistorial: () -> Unit, onEditarRutina: () -> Unit) {
     val ejerciciosPersonales by vmPersonal.ejercicios.collectAsState()
 
     val tieneRutinaPersonal = ejerciciosPersonales.isNotEmpty()
-    val rutinaDefault = remember(prefs.diasEntrenamiento) { obtenerRutinaDia(prefs.diasEntrenamiento) }
+    val rutinaDefault = remember(prefs.diasEntrenamiento, isSpanish) {
+        obtenerRutinaDia(prefs.diasEntrenamiento, isSpanish)
+    }
 
     val nombreRutina = if (tieneRutinaPersonal) strings.myPersonalRoutineLabel else rutinaDefault.nombre
     val duracion = if (tieneRutinaPersonal) ejerciciosPersonales.size * 7 else rutinaDefault.duracionMin
@@ -156,20 +160,19 @@ fun ChipInfo(texto: String) {
     }
 }
 
-fun obtenerRutinaDia(diasEntrenamiento: Int): Rutina {
+fun obtenerRutinaDia(diasEntrenamiento: Int, isSpanish: Boolean = true): Rutina {
     val dow = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-    return obtenerRutinaParaDia(diasEntrenamiento, dow)
+    return obtenerRutinaParaDia(diasEntrenamiento, dow, isSpanish)
 }
 
-fun obtenerRutinaParaDia(diasEntrenamiento: Int, dow: Int): Rutina {
+fun obtenerRutinaParaDia(diasEntrenamiento: Int, dow: Int, isSpanish: Boolean = true): Rutina {
     val rutinas = when {
-        diasEntrenamiento <= 2 -> rutinasGrupoMuscularAlta
-        diasEntrenamiento <= 4 -> rutinasGrupoMuscularMedia
-        else -> rutinasGrupoMuscularBaja
+        diasEntrenamiento <= 2 -> if (isSpanish) rutinasGrupoMuscularAlta else rutinasGrupoMuscularAltaEN
+        diasEntrenamiento <= 4 -> if (isSpanish) rutinasGrupoMuscularMedia else rutinasGrupoMuscularMediaEN
+        else -> if (isSpanish) rutinasGrupoMuscularBaja else rutinasGrupoMuscularBajaEN
     }
     val descanso = rutinas.last()
     val entrenamiento = rutinas.dropLast(1)
-    // Convierte DAY_OF_WEEK (Dom=1..Sáb=7) a Lunes=1..Domingo=7
     val dayNumber = (dow + 5) % 7 + 1
     return if (dayNumber <= diasEntrenamiento) entrenamiento[(dayNumber - 1) % entrenamiento.size] else descanso
 }
@@ -178,6 +181,8 @@ fun fechaHoyStr(): String {
     val cal = Calendar.getInstance()
     return "%04d-%02d-%02d".format(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH))
 }
+
+// ── Rutinas ES ──────────────────────────────────────────────────────────────
 
 val rutinasGrupoMuscularBaja = listOf(
     Rutina("Pecho", 40, listOf(
@@ -328,5 +333,159 @@ val rutinasGrupoMuscularAlta = listOf(
         Ejercicio("Foam rolling intensivo", 1, "10 min", "—", "Zonas tensas del entrenamiento"),
         Ejercicio("Estiramientos pasivos", 2, "30 seg/postura", "—", "Mantén sin forzar"),
         Ejercicio("Baño frío o contraste", 1, "10 min", "—", "Recuperación activa óptima")
+    ))
+)
+
+// ── Rutinas EN ──────────────────────────────────────────────────────────────
+
+val rutinasGrupoMuscularBajaEN = listOf(
+    Rutina("Chest", 40, listOf(
+        Ejercicio("Push-Ups", 3, "10-12", "90 seg", "Hands shoulder-width apart"),
+        Ejercicio("Dumbbell Chest Press", 3, "12", "75 seg", "Light weight, full range"),
+        Ejercicio("Dumbbell Flyes", 2, "12", "60 seg", "Controlled arc movement"),
+        Ejercicio("Chair Dips", 2, "10", "60 seg", "Lower to 90 degrees")
+    )),
+    Rutina("Back", 40, listOf(
+        Ejercicio("Band Pulldown", 3, "15", "75 seg", "Shoulder blades down and together"),
+        Ejercicio("Dumbbell Row", 3, "12 per side", "75 seg", "Back straight, parallel to floor"),
+        Ejercicio("Superman", 3, "12", "60 seg", "Squeeze glutes on the way up"),
+        Ejercicio("Inverted Row", 2, "10", "60 seg", "Chest to the bar")
+    )),
+    Rutina("Legs", 45, listOf(
+        Ejercicio("Bodyweight Squat", 3, "15", "60 seg", "Knees aligned with feet"),
+        Ejercicio("Alternating Lunges", 3, "10 per leg", "60 seg", "Long stride, controlled descent"),
+        Ejercicio("Glute Bridge", 3, "15", "45 seg", "Squeeze glutes at the top"),
+        Ejercicio("Calf Raises", 3, "20", "45 seg", "Full range of motion")
+    )),
+    Rutina("Shoulders & Core", 35, listOf(
+        Ejercicio("Dumbbell Shoulder Press", 3, "12", "75 seg", "Seated, back straight"),
+        Ejercicio("Lateral Raises", 3, "12", "60 seg", "Elbows slightly bent"),
+        Ejercicio("Plank", 3, "30 seg", "45 seg", "Body straight as a board"),
+        Ejercicio("Crunches", 3, "15", "45 seg", "Don't pull your neck")
+    )),
+    Rutina("Biceps & Triceps", 35, listOf(
+        Ejercicio("Dumbbell Curl", 3, "12", "60 seg", "Elbows close to body"),
+        Ejercicio("Chair Dips", 3, "10", "60 seg", "Back close to the chair"),
+        Ejercicio("Hammer Curl", 2, "12", "60 seg", "Neutral grip"),
+        Ejercicio("Tricep Extension", 2, "12", "60 seg", "Full control on the way down")
+    )),
+    Rutina("Full Body", 45, listOf(
+        Ejercicio("Squat + Shoulder Press", 3, "10", "75 seg", "Light dumbbells"),
+        Ejercicio("Dumbbell Deadlift", 3, "10", "75 seg", "Back straight"),
+        Ejercicio("Push-Ups", 3, "10", "60 seg", "Hands shoulder-width"),
+        Ejercicio("Plank", 3, "30 seg", "45 seg", "Core engaged")
+    )),
+    Rutina("Active Rest", 25, listOf(
+        Ejercicio("General Stretching", 2, "2 min", "—", "Full body, no forcing"),
+        Ejercicio("Light Walk", 1, "15 min", "—", "Easy pace"),
+        Ejercicio("Deep Breathing", 1, "5 min", "—", "Inhale 4s, exhale 4s")
+    ))
+)
+
+val rutinasGrupoMuscularMediaEN = listOf(
+    Rutina("Chest", 55, listOf(
+        Ejercicio("Bench Press", 4, "8-10", "90 seg", "Grip slightly wider than shoulders"),
+        Ejercicio("Incline Dumbbell Press", 3, "10-12", "75 seg", "30-45 degree angle"),
+        Ejercicio("Dips", 3, "To failure", "60 seg", "Lean forward to work the chest"),
+        Ejercicio("Flat Dumbbell Flyes", 3, "12-15", "60 seg", "Elbows slightly bent"),
+        Ejercicio("Diamond Push-Ups", 2, "12", "45 seg", "Hands forming a diamond")
+    )),
+    Rutina("Back", 55, listOf(
+        Ejercicio("Pull-Ups", 4, "To failure", "90 seg", "Pronated grip, shoulder-width"),
+        Ejercicio("Barbell Row", 4, "8-10", "90 seg", "Back straight, chest forward"),
+        Ejercicio("Lat Pulldown", 3, "12-15", "75 seg", "Bar to collarbone"),
+        Ejercicio("Dumbbell Row", 3, "12 per side", "75 seg", "Elbow above the hip"),
+        Ejercicio("Dumbbell Pullover", 2, "12", "60 seg", "Lats and serratus")
+    )),
+    Rutina("Legs", 60, listOf(
+        Ejercicio("Squat", 4, "8-10", "120 seg", "Depth to parallel or below"),
+        Ejercicio("Leg Press", 3, "12-15", "90 seg", "Feet shoulder-width apart"),
+        Ejercicio("Dumbbell Lunges", 3, "12 per leg", "75 seg", "Back knee nearly touches the floor"),
+        Ejercicio("Lying Leg Curl", 4, "12-15", "75 seg", "Hamstrings"),
+        Ejercicio("Standing Calf Raises", 4, "15-20", "60 seg", "Full range of motion")
+    )),
+    Rutina("Shoulders & Core", 50, listOf(
+        Ejercicio("Overhead Press", 4, "8-10", "90 seg", "Standing or seated"),
+        Ejercicio("Lateral Raises", 4, "12-15", "60 seg", "Elbows slightly bent"),
+        Ejercicio("Rear Delt Flyes", 3, "15", "60 seg", "Rear deltoid"),
+        Ejercicio("Plank", 3, "60 seg", "45 seg", "Body straight as a board"),
+        Ejercicio("Weighted Crunches", 4, "12-15", "60 seg", "Controlled descent")
+    )),
+    Rutina("Biceps & Triceps", 50, listOf(
+        Ejercicio("Barbell Curl", 4, "10-12", "60 seg", "No body swing"),
+        Ejercicio("Skull Crushers", 3, "10-12", "75 seg", "EZ bar or dumbbells"),
+        Ejercicio("Concentration Curl", 3, "12 per arm", "60 seg", "Elbow on thigh"),
+        Ejercicio("Cable Tricep Pushdown", 4, "12-15", "60 seg", "Elbows close to body"),
+        Ejercicio("Alternating Hammer Curl", 3, "12", "60 seg", "Works brachioradialis")
+    )),
+    Rutina("Full Body", 60, listOf(
+        Ejercicio("Deadlift", 4, "6-8", "120 seg", "King of total strength"),
+        Ejercicio("Bench Press", 3, "10", "90 seg", "Full chest"),
+        Ejercicio("Pull-Ups", 3, "To failure", "90 seg", "Wide back"),
+        Ejercicio("Goblet Squat", 3, "12", "75 seg", "With dumbbell or kettlebell"),
+        Ejercicio("Side Plank", 3, "45 seg/side", "45 seg", "Lateral core")
+    )),
+    Rutina("Active Rest", 30, listOf(
+        Ejercicio("Hip Mobility", 2, "10 per side", "30 seg", "Slow controlled circles"),
+        Ejercicio("Hamstring Stretch", 2, "30 seg/side", "20 seg", "Don't force it"),
+        Ejercicio("Foam Rolling", 1, "5 min", "—", "Back, legs, glutes"),
+        Ejercicio("Breathing & Yoga", 1, "10 min", "—", "Reduces cortisol and improves recovery")
+    ))
+)
+
+val rutinasGrupoMuscularAltaEN = listOf(
+    Rutina("Chest", 70, listOf(
+        Ejercicio("Bench Press", 5, "6-8", "90 seg", "Heavy loads, technique first"),
+        Ejercicio("Incline Barbell Press", 4, "8-10", "75 seg", "30-45 degree angle"),
+        Ejercicio("Weighted Dips", 4, "8-10", "90 seg", "Add weight if possible"),
+        Ejercicio("Cable Flyes", 4, "12-15", "60 seg", "Maximum contraction in center"),
+        Ejercicio("Decline Press", 3, "10-12", "60 seg", "Lower chest"),
+        Ejercicio("Explosive Push-Ups", 3, "8", "75 seg", "Hands leave the ground")
+    )),
+    Rutina("Back", 70, listOf(
+        Ejercicio("Deadlift", 5, "5", "120 seg", "Technique first"),
+        Ejercicio("Weighted Pull-Ups", 4, "6-8", "90 seg", "Add weight if possible"),
+        Ejercicio("Pendlay Row", 4, "6-8", "90 seg", "Bar touches floor each rep"),
+        Ejercicio("Close-Grip Lat Pulldown", 4, "10-12", "75 seg", "Greater range of motion"),
+        Ejercicio("Low Cable Row", 3, "12-15", "60 seg", "Shoulder blades fully retracted"),
+        Ejercicio("Face Pull", 3, "15", "45 seg", "Rotator cuff health")
+    )),
+    Rutina("Legs", 75, listOf(
+        Ejercicio("Squat", 5, "6-8", "120 seg", "Max load, full depth"),
+        Ejercicio("Bulgarian Split Squat", 4, "8 per leg", "90 seg", "Rear foot elevated"),
+        Ejercicio("Leg Press", 4, "12-15", "90 seg", "Feet high for hamstrings"),
+        Ejercicio("Romanian Deadlift", 4, "10", "90 seg", "Posterior chain"),
+        Ejercicio("Barbell Hip Thrust", 4, "10", "75 seg", "Maximum hip drive"),
+        Ejercicio("Seated Calf Raises", 4, "20", "60 seg", "Soleus")
+    )),
+    Rutina("Shoulders & Core", 65, listOf(
+        Ejercicio("Overhead Press", 5, "6-8", "90 seg", "Standing, max weight"),
+        Ejercicio("Lateral Raises", 5, "12-15", "45 seg", "Pause at the top"),
+        Ejercicio("Machine Rear Delt Flyes", 4, "15", "45 seg", "Rear deltoid"),
+        Ejercicio("Arnold Press", 3, "10-12", "75 seg", "Full rotation movement"),
+        Ejercicio("Dynamic Plank", 4, "45 seg", "30 seg", "Constant movement"),
+        Ejercicio("Ab Wheel", 3, "10", "60 seg", "Deep core")
+    )),
+    Rutina("Biceps & Triceps", 60, listOf(
+        Ejercicio("Barbell Curl", 5, "8-10", "60 seg", "Linear load progression"),
+        Ejercicio("Tricep Pushdown", 4, "10-12", "60 seg", "Elbows close to body"),
+        Ejercicio("Incline Dumbbell Curl", 4, "12", "60 seg", "Maximum biceps stretch"),
+        Ejercicio("Overhead Tricep Extension", 4, "12-15", "60 seg", "Long head of triceps"),
+        Ejercicio("Scott Curl", 3, "10-12", "75 seg", "Biceps isolation"),
+        Ejercicio("Close-Grip Bench Press", 3, "10", "75 seg", "Triceps and inner chest")
+    )),
+    Rutina("Full Body", 75, listOf(
+        Ejercicio("Squat", 4, "6", "120 seg", "Max load of the day"),
+        Ejercicio("Bench Press", 4, "6", "120 seg", "Max load of the day"),
+        Ejercicio("Deadlift", 4, "5", "120 seg", "Max load of the day"),
+        Ejercicio("Overhead Press", 3, "8", "90 seg", "Shoulder power"),
+        Ejercicio("Weighted Pull-Ups", 3, "6-8", "90 seg", "Back and biceps"),
+        Ejercicio("Machine Row", 3, "10", "60 seg", "Finish the session")
+    )),
+    Rutina("Active Rest", 35, listOf(
+        Ejercicio("General Joint Mobility", 2, "5 min", "—", "All joints"),
+        Ejercicio("Intensive Foam Rolling", 1, "10 min", "—", "Tight spots from training"),
+        Ejercicio("Passive Stretching", 2, "30 seg/pose", "—", "Hold without forcing"),
+        Ejercicio("Cold Bath or Contrast", 1, "10 min", "—", "Optimal active recovery")
     ))
 )

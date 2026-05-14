@@ -17,44 +17,42 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
+import com.example.fitme.LocalIsSpanish
 import com.example.fitme.data.UserPreferences
 import com.example.fitme.data.api.DiaMenuDto
 import com.example.fitme.viewmodel.MenuPersonalViewModel
 
-private val DIAS = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
-
 private data class MealEditing(val diaSemana: Int, val momento: String)
 
 @Composable
-fun EditarMenuScreen(onVolver: () -> Unit = {}) {
+fun EditarMenuScreen(vm: MenuPersonalViewModel, onVolver: () -> Unit = {}) {
     val strings = LocalAppStrings.current
+    val isSpanish = LocalIsSpanish.current
     val context = LocalContext.current
     val prefs = remember { UserPreferences(context) }
-    val vm: MenuPersonalViewModel = viewModel()
     val diasMenu by vm.diasMenu.collectAsState()
 
     val MOMENTOS = listOf("desayuno" to strings.breakfastLabel, "almuerzo" to strings.lunchLabel, "cena" to strings.dinnerLabel)
 
-    val menuLocal = remember(diasMenu) {
-        val base = generarMenu(prefs.objetivo)
-        val map = mutableMapOf<Int, DiaMenuDto>()
-        DIAS.forEachIndexed { idx, _ ->
-            val dto = diasMenu.firstOrNull { it.diaSemana == idx }
-            val baseDia = base.getOrNull(idx)
-            map[idx] = dto ?: DiaMenuDto(
-                diaSemana = idx,
-                desayuno = baseDia?.desayuno?.nombre,
-                almuerzo = baseDia?.almuerzo?.nombre,
-                cena = baseDia?.cena?.nombre,
-                kcalTotales = baseDia?.let { it.desayuno.calorias + it.almuerzo.calorias + it.cena.calorias }
-            )
+    val menuLocal = remember(diasMenu, isSpanish) {
+        val base = generarMenu(prefs.objetivo, isSpanish)
+        mutableStateMapOf<Int, DiaMenuDto>().also { map ->
+            (0..6).forEach { idx ->
+                val dto = diasMenu.firstOrNull { it.diaSemana == idx }
+                val baseDia = base.getOrNull(idx)
+                map[idx] = dto ?: DiaMenuDto(
+                    diaSemana = idx,
+                    desayuno = baseDia?.desayuno?.nombre,
+                    almuerzo = baseDia?.almuerzo?.nombre,
+                    cena = baseDia?.cena?.nombre,
+                    kcalTotales = baseDia?.let { it.desayuno.calorias + it.almuerzo.calorias + it.cena.calorias }
+                )
+            }
         }
-        map
-    }.let { remember { mutableStateOf(it) } }.value
+    }
 
     var mealEditando by remember { mutableStateOf<MealEditing?>(null) }
 
@@ -72,7 +70,7 @@ fun EditarMenuScreen(onVolver: () -> Unit = {}) {
             else -> strings.dinnerLabel
         }
         DialogEditarComida(
-            titulo = "$momentoLabel — ${DIAS[key.diaSemana]}",
+            titulo = "$momentoLabel — ${diasSemana(isSpanish)[key.diaSemana]}",
             valorActual = valorActual,
             strings = strings,
             onConfirmar = { nuevo ->
@@ -109,7 +107,7 @@ fun EditarMenuScreen(onVolver: () -> Unit = {}) {
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            DIAS.forEachIndexed { idx, dia ->
+            diasSemana(isSpanish).forEachIndexed { idx, dia ->
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),

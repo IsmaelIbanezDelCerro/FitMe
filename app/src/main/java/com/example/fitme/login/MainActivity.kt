@@ -42,6 +42,8 @@ import com.example.fitme.LocalOnToggleLanguage
 import com.example.fitme.loadStrings
 import com.example.fitme.screens.*
 import com.example.fitme.ui.theme.FitMeTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fitme.viewmodel.MenuPersonalViewModel
 import com.example.fitme.R
 
 class MainActivity : ComponentActivity() {
@@ -110,6 +112,7 @@ class MainActivity : ComponentActivity() {
 fun AppShell(onLogout: () -> Unit) {
     val strings = LocalAppStrings.current
     val navController = rememberNavController()
+    val menuVm: MenuPersonalViewModel = viewModel()
     val navBackStack by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStack?.destination?.route
 
@@ -153,10 +156,10 @@ fun AppShell(onLogout: () -> Unit) {
                     GraficaImcScreen(onVolver = { navController.popBackStack() })
                 }
                 composable("menu_semanal") {
-                    MenuSemanalScreen(onEditarMenu = { navController.navigate("editar_menu") })
+                    MenuSemanalScreen(vm = menuVm, onEditarMenu = { navController.navigate("editar_menu") })
                 }
                 composable("editar_menu") {
-                    EditarMenuScreen(onVolver = { navController.popBackStack() })
+                    EditarMenuScreen(vm = menuVm, onVolver = { navController.popBackStack() })
                 }
                 composable("rutina_dia") {
                     RutinaDelDiaScreen(

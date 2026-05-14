@@ -87,8 +87,14 @@ fun GimnasiosScreen(onVolver: () -> Unit) {
             cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lon), 12f))
 
             // 3. Buscar gimnasios en Overpass API
-            val gyms = withContext(Dispatchers.IO) {
-                fetchGymsFromOverpass(lat, lon)
+            val gyms = try {
+                withContext(Dispatchers.IO) {
+                    fetchGymsFromOverpass(lat, lon)
+                }
+            } catch (_: Exception) {
+                errorMsg = "${strings.gymNoResults} $ciudadFinal"
+                buscando = false
+                return@launch
             }
 
             // 4. Actualizar ClusterManager con los gimnasios encontrados
