@@ -1,8 +1,11 @@
 package com.example.fitme.screens
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -10,8 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fitme.AppStrings
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
@@ -56,6 +61,17 @@ fun MenuSemanalScreen(vm: MenuPersonalViewModel) {
     }
 
     val tieneMenuPersonal = diasMenu.isNotEmpty()
+    var mostrarDialogo by remember { mutableStateOf(false) }
+
+    if (mostrarDialogo) {
+        DialogAnadirAlimento(
+            diasMenu = diasMenu,
+            isSpanish = isSpanish,
+            strings = strings,
+            onGuardar = { dia -> vm.guardarDia(dia); mostrarDialogo = false },
+            onDescartar = { mostrarDialogo = false }
+        )
+    }
 
     GymBackground {
         LazyColumn(
@@ -88,7 +104,142 @@ fun MenuSemanalScreen(vm: MenuPersonalViewModel) {
 
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }
+
+        FloatingActionButton(
+            onClick = { mostrarDialogo = true },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 90.dp),
+            containerColor = Color(0xFF00C853),
+            contentColor = Color.Black
+        ) {
+            Text("+", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        }
     }
+}
+
+@Composable
+private fun DialogAnadirAlimento(
+    diasMenu: List<DiaMenuDto>,
+    isSpanish: Boolean,
+    strings: AppStrings,
+    onGuardar: (DiaMenuDto) -> Unit,
+    onDescartar: () -> Unit
+) {
+    var nombre by remember { mutableStateOf("") }
+    var diaIdx by remember { mutableStateOf(0) }
+    var momento by remember { mutableStateOf("desayuno") }
+    var kcal by remember { mutableStateOf("") }
+
+    val dias = diasSemana(isSpanish)
+    val momentos = listOf(
+        "desayuno" to strings.breakfastShort,
+        "almuerzo" to strings.lunchShort,
+        "cena" to strings.dinnerShort
+    )
+    val campoColores = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = Color(0xFF00C853),
+        unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        cursorColor = Color(0xFF00C853),
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent
+    )
+
+    AlertDialog(
+        onDismissRequest = onDescartar,
+        containerColor = Color(0xFF1E1E1E),
+        title = {
+            Text(strings.addFoodTitle, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text(strings.foodFieldLabel, color = Color.White.copy(alpha = 0.7f)) },
+                    colors = campoColores,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Text(strings.selectDayLabel, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    dias.forEachIndexed { idx, dia ->
+                        FilterChip(
+                            selected = diaIdx == idx,
+                            onClick = { diaIdx = idx },
+                            label = { Text(dia.take(3), fontSize = 11.sp) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFF00C853),
+                                selectedLabelColor = Color.Black,
+                                containerColor = Color(0xFF2A2A2A),
+                                labelColor = Color.White
+                            )
+                        )
+                    }
+                }
+
+                Text(strings.selectMealLabel, color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    momentos.forEach { (clave, etiqueta) ->
+                        FilterChip(
+                            selected = momento == clave,
+                            onClick = { momento = clave },
+                            label = { Text(etiqueta, fontSize = 11.sp) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFF00C853),
+                                selectedLabelColor = Color.Black,
+                                containerColor = Color(0xFF2A2A2A),
+                                labelColor = Color.White
+                            )
+                        )
+                    }
+                }
+
+                OutlinedTextField(
+                    value = kcal,
+                    onValueChange = { kcal = it },
+                    label = { Text(strings.kcalFieldLabel, color = Color.White.copy(alpha = 0.7f)) },
+                    colors = campoColores,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    singleLine = true
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (nombre.isNotBlank()) {
+                        val existing = diasMenu.firstOrNull { it.diaSemana == diaIdx }
+                        val updated = when (momento) {
+                            "desayuno" -> (existing ?: DiaMenuDto(diaSemana = diaIdx))
+                                .copy(desayuno = nombre.trim(), kcalTotales = kcal.toIntOrNull())
+                            "almuerzo" -> (existing ?: DiaMenuDto(diaSemana = diaIdx))
+                                .copy(almuerzo = nombre.trim())
+                            else -> (existing ?: DiaMenuDto(diaSemana = diaIdx))
+                                .copy(cena = nombre.trim())
+                        }
+                        onGuardar(updated)
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
+                shape = RoundedCornerShape(8.dp)
+            ) { Text(strings.saveBtn, fontWeight = FontWeight.Bold) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDescartar) {
+                Text(strings.cancelBtn, color = Color.White.copy(alpha = 0.6f))
+            }
+        }
+    )
 }
 
 @Composable
