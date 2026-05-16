@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -484,7 +485,6 @@ fun RegisterScreen(navController: NavController) {
                     Text(text = strings.bmiAutoCalculatedMsg, color = Color(0xFF00C853), fontSize = 12.sp)
                 }
             }
-
             if (showError.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = showError, color = Color.Red, fontSize = 12.sp)
@@ -564,7 +564,7 @@ fun RegisterScreen(navController: NavController) {
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFF00C853).copy(alpha = 0.15f))
                 ) {
-                    Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(modifier = Modifier.padding(40.dp, 16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("✓", color = Color(0xFF00C853), fontSize = 36.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(text = strings.accountCreatedOkMsg, color = Color(0xFF00C853), fontWeight = FontWeight.Bold, fontSize = 15.sp, textAlign = TextAlign.Center)
