@@ -679,7 +679,7 @@ fun GreetingPreview() {
                 LocalOnToggleLanguage provides onToggle
             ) {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "login") {
+                NavHost(navController = navController, startDestination = "intereses") {
                     composable("login") {
                         LoginScreen(navController = navController)
                     }
