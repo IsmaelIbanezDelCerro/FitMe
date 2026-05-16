@@ -125,8 +125,6 @@ fun InteresesScreen(navController: NavController) {
 
     var errorMsg by remember { mutableStateOf("") }
 
-    var errorMsg by remember { mutableStateOf("") }
-
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
             painter = painterResource(id = R.drawable.gym_bg),

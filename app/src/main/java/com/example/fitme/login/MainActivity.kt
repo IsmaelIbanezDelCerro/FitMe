@@ -599,6 +599,13 @@ fun RegisterScreen(navController: NavController) {
             }
             Spacer(modifier = Modifier.height(30.dp))
         }
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(24.dp, 40.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            LanguageToggleButton()
+        }
     }
 }
 
