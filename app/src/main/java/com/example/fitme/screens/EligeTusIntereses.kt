@@ -37,7 +37,8 @@ import com.example.fitme.ui.theme.FitMeTheme
 
 
 data class Comida(
-    val nombre: String,
+    val nombreEs: String, // Cambiado para tener ambos
+    val nombreEn: String, // nombres disponibles
     val iconos: List<String>,
     val seleccionada: Boolean = false
 )
@@ -49,86 +50,86 @@ fun InteresesScreen(navController: NavController) {
     val comidas = remember {
         mutableStateListOf(
             // 🥩 CARNES
-            Comida("Pollo", listOf("🍗")),
-            Comida("Ternera", listOf("🥩")),
-            Comida("Pavo", listOf("🍗")),
-            Comida("Conejo", listOf("🍖")),
-            Comida("Cerdo", listOf()),
-            Comida("Cordero", listOf()),
-            Comida("Jamón", listOf("🍖")),
-            Comida("Pechuga de pollo", listOf()),
+            Comida("Pollo", "Chicken", listOf("🍗")),
+            Comida("Ternera", "Beef", listOf("🥩")),
+            Comida("Pavo", "Turkey", listOf("🍗")),
+            Comida("Conejo", "Rabbit", listOf("🍖")),
+            Comida("Cerdo", "Pork", listOf()),
+            Comida("Cordero", "Lamb", listOf()),
+            Comida("Jamón", "Ham", listOf("🍖")),
+            Comida("Pechuga de pollo", "Chicken breast", listOf()),
 
             // 🐟 PESCADO Y MARISCO
-            Comida("Salmón", listOf("🐟")),
-            Comida("Atún", listOf("🐟")),
-            Comida("Gambas", listOf("🦐")),
-            Comida("Merluza", listOf("🐟")),
-            Comida("Bacalao", listOf("🐟")),
-            Comida("Sardinas", listOf()),
-            Comida("Trucha", listOf("🐟")),
-            Comida("Boquerones", listOf()),
+            Comida("Salmón", "Salmon", listOf("🐟")),
+            Comida("Atún", "Tuna", listOf("🐟")),
+            Comida("Gambas", "Prawns", listOf("🦐")),
+            Comida("Merluza", "Hake", listOf("🐟")),
+            Comida("Bacalao", "Cod", listOf("🐟")),
+            Comida("Sardinas", "Sardines", listOf()),
+            Comida("Trucha", "Trout", listOf("🐟")),
+            Comida("Boquerones", "Anchovies", listOf()),
 
             // 🥚 HUEVOS
-            Comida("Huevos", listOf("🥚")),
+            Comida("Huevos", "Eggs", listOf("🥚")),
 
             // 🥛 LÁCTEOS
-            Comida("Yogur", listOf("🥛")),
-            Comida("Queso", listOf("🧀")),
-            Comida("Proteína", listOf()),
-            Comida("Leche", listOf("🥛")),
-            Comida("Kéfir", listOf("🥛")),
-            Comida("Requesón", listOf()),
-            Comida("Cuajada", listOf("🥛")),
-            Comida("Leche desnatada", listOf()),
+            Comida("Yogur", "Yogurt", listOf("🥛")),
+            Comida("Queso", "Cheese", listOf("🧀")),
+            Comida("Proteína", "Protein", listOf()),
+            Comida("Leche", "Milk", listOf("🥛")),
+            Comida("Kéfir", "Kefir", listOf("🥛")),
+            Comida("Requesón", "Cottage cheese", listOf()),
+            Comida("Cuajada", "Curd", listOf("🥛")),
+            Comida("Leche desnatada", "Skimmed milk", listOf()),
 
-            // 🌱 VEGETAL / VEGANO
-            Comida("Tofu", listOf("🌱")),
-            Comida("Lentejas", listOf("🌱")),
-            Comida("Garbanzos", listOf("🌱")),
-            Comida("Quinoa", listOf("🌱")),
-            Comida("Soja", listOf("🌱")),
-            Comida("Alubias", listOf()),
-            Comida("Espinacas", listOf()),
-            Comida("Brócoli", listOf("🌱")),
+            // 🌱 VEGETAL
+            Comida("Tofu", "Tofu", listOf("🌱")),
+            Comida("Lentejas", "Lentils", listOf("🌱")),
+            Comida("Garbanzos", "Chickpeas", listOf("🌱")),
+            Comida("Quinoa", "Quinoa", listOf("🌱")),
+            Comida("Soja", "Soy", listOf("🌱")),
+            Comida("Alubias", "Beans", listOf()),
+            Comida("Espinacas", "Spinach", listOf()),
+            Comida("Brócoli", "Broccoli", listOf("🌱")),
 
             // 🥜 FRUTOS SECOS
-            Comida("Cacahuete", listOf()),
-            Comida("Almendras", listOf()),
-            Comida("Nueces", listOf("🌰")),
-            Comida("Anacardos", listOf()),
-            Comida("Pistachos", listOf()),
-            Comida("Avellanas", listOf()),
-            Comida("Piñones", listOf("🌰")),
-            Comida("Macadamia", listOf()),
+            Comida("Cacahuete", "Peanut", listOf()),
+            Comida("Almendras", "Almonds", listOf()),
+            Comida("Nueces", "Walnuts", listOf("🌰")),
+            Comida("Anacardos", "Cashews", listOf()),
+            Comida("Pistachos", "Pistachios", listOf()),
+            Comida("Avellanas", "Hazelnuts", listOf()),
+            Comida("Piñones", "Pine nuts", listOf("🌰")),
+            Comida("Macadamia", "Macadamia", listOf()),
 
             // 🌾 GLUTEN
-            Comida("Avena", listOf("🌾")),
-            Comida("Pan integral", listOf()),
-            Comida("Pasta", listOf("🍝")),
-            Comida("Cebada", listOf("🌾")),
-            Comida("Centeno", listOf()),
-            Comida("Cuscús", listOf()),
-            Comida("Harina", listOf("🌾")),
-            Comida("Pan blanco", listOf()),
+            Comida("Avena", "Oats", listOf("🌾")),
+            Comida("Pan integral", "Wholemeal bread", listOf()),
+            Comida("Pasta", "Pasta", listOf("🍝")),
+            Comida("Cebada", "Barley", listOf("🌾")),
+            Comida("Centeno", "Rye", listOf()),
+            Comida("Cuscús", "Couscous", listOf()),
+            Comida("Harina", "Flour", listOf("🌾")),
+            Comida("Pan blanco", "White bread", listOf()),
 
             // 🧂 OTROS
-            Comida("Mostaza", listOf("🌭")),
-            Comida("Apio", listOf("🥬")),
-            Comida("Soja (salsa)", listOf()),
-            Comida("Vinagre", listOf()),
-            Comida("Picante", listOf()),
-            Comida("Mayonesa", listOf()),
-            Comida("Ketchup", listOf()),
+            Comida("Mostaza", "Mustard", listOf("🌭")),
+            Comida("Apio", "Celery", listOf("🥬")),
+            Comida("Soja (salsa)", "Soy sauce", listOf()),
+            Comida("Vinagre", "Vinegar", listOf()),
+            Comida("Picante", "Spicy sauce", listOf()),
+            Comida("Mayonesa", "Mayonnaise", listOf()),
+            Comida("Ketchup", "Ketchup", listOf()),
 
             // 💪 FITNESS EXTRA
-            Comida("Claras de huevo", listOf()),
-            Comida("Batido", listOf("🥤")),
-            Comida("Arroz", listOf("🍚")),
-            Comida("Patata", listOf("🥔")),
-            Comida("Batata", listOf("🍠")),
-            Comida("Avena fitness", listOf()),
-            Comida("Plátano", listOf("🍌")),
-            Comida("Creatina", listOf())
+            Comida("Claras de huevo", "Egg whites", listOf()),
+            Comida("Batido", "Shake", listOf("🥤")),
+            Comida("Arroz", "Rice", listOf("🍚")),
+            Comida("Patata", "Potato", listOf("🥔")),
+            Comida("Batata", "Sweet potato", listOf("🍠")),
+            Comida("Avena fitness", "Fitness oats", listOf()),
+            Comida("Plátano", "Banana", listOf("🍌")),
+            Comida("Creatina", "Creatine", listOf())
         )
     }
 
@@ -158,6 +159,9 @@ fun InteresesScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            // Recuperamos si está activo el español
+            val isSpanish = LocalIsSpanish.current
+
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 100.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -168,6 +172,7 @@ fun InteresesScreen(navController: NavController) {
                     val comida = comidas[index]
                     ItemComida(
                         comida = comida,
+                        isSpanish = isSpanish, // <-- Pasamos el estado del idioma aquí
                         onClick = { comidas[index] = comida.copy(seleccionada = !comida.seleccionada) }
                     )
                 }
@@ -190,7 +195,7 @@ fun InteresesScreen(navController: NavController) {
 }
 
 @Composable
-fun ItemComida(comida: Comida, onClick: () -> Unit) {
+fun ItemComida(comida: Comida, isSpanish: Boolean, onClick: () -> Unit) { // <-- Añadido isSpanish
     val isSelected = comida.seleccionada
 
     Card(
@@ -203,12 +208,14 @@ fun ItemComida(comida: Comida, onClick: () -> Unit) {
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val tamannoFuente = if (comida.nombre.length > 10) 10.sp else 12.sp
+            // Elegimos el nombre correcto según el idioma activo
+            val nombreMostrar = if (isSpanish) comida.nombreEs else comida.nombreEn
+            val tamannoFuente = if (nombreMostrar.length > 10) 10.sp else 12.sp
 
             comida.iconos.forEach { Text(text = it, fontSize = 16.sp) }
 
             Spacer(modifier = Modifier.width(6.dp))
-            Text(text = comida.nombre, color = Color.White, fontWeight = FontWeight.Medium, fontSize = tamannoFuente, maxLines = 1)
+            Text(text = nombreMostrar, color = Color.White, fontWeight = FontWeight.Medium, fontSize = tamannoFuente, maxLines = 1)
         }
     }
 }
