@@ -1,5 +1,6 @@
 package com.fitme.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class Racha {
     @Column(name = "dias_consecutivos")
     private Integer diasConsecutivos;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Column(name = "ultima_actividad")
     private LocalDate ultimaActividad;
 

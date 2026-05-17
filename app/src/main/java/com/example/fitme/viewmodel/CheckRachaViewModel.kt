@@ -24,7 +24,7 @@ class CheckRachaViewModel(application: Application) : AndroidViewModel(applicati
         cargarRacha()
     }
 
-    private fun cargarRacha() {
+    fun cargarRacha() {
         viewModelScope.launch {
             try {
                 _racha.value = RetrofitClient.api.getRacha(prefs.usuarioId)
@@ -34,32 +34,12 @@ class CheckRachaViewModel(application: Application) : AndroidViewModel(applicati
 
     fun guardarCheck(ejercicioHecho: Boolean, dietaHecha: Boolean) {
         if (!ejercicioHecho && !dietaHecha) return
-        val hoy = fechaHoy()
-        val actual = _racha.value
-        val nuevosDias = when (actual.ultimaActividad) {
-            hoy -> actual.diasConsecutivos
-            ayer() -> actual.diasConsecutivos + 1
-            else -> 1
-        }
-        val nuevaMax = maxOf(nuevosDias, actual.rachaMaxima)
         viewModelScope.launch {
             try {
-                _racha.value = RetrofitClient.api.updateRacha(
-                    prefs.usuarioId,
-                    RachaDto(diasConsecutivos = nuevosDias, ultimaActividad = hoy, rachaMaxima = nuevaMax)
-                )
+                _racha.value = RetrofitClient.api.registrarCheck(prefs.usuarioId)
             } catch (_: Exception) {}
         }
     }
 
-    fun calcularRachaActual(): Int = _racha.value.diasConsecutivos
-    fun calcularMejorRacha(): Int = _racha.value.rachaMaxima
-
     fun fechaHoy(): String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
-    private fun ayer(): String {
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.DAY_OF_YEAR, -1)
-        return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
-    }
 }
