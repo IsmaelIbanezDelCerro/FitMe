@@ -15,16 +15,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
 import com.example.fitme.viewmodel.CheckRachaViewModel
 
 @Composable
-fun RachaScreen(onIrCheckDiario: () -> Unit) {
+fun RachaScreen(vm: CheckRachaViewModel, onIrCheckDiario: () -> Unit) {
     val strings = LocalAppStrings.current
-    val vm: CheckRachaViewModel = viewModel()
     val racha by vm.racha.collectAsState()
 
     val rachaActual = racha.diasConsecutivos

@@ -43,6 +43,7 @@ import com.example.fitme.loadStrings
 import com.example.fitme.screens.*
 import com.example.fitme.ui.theme.FitMeTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fitme.viewmodel.CheckRachaViewModel
 import com.example.fitme.viewmodel.MenuPersonalViewModel
 import com.example.fitme.R
 
@@ -113,6 +114,7 @@ fun AppShell(onLogout: () -> Unit) {
     val strings = LocalAppStrings.current
     val navController = rememberNavController()
     val menuVm: MenuPersonalViewModel = viewModel()
+    val rachaVm: CheckRachaViewModel = viewModel()
     val navBackStack by navController.currentBackStackEntryAsState()
     val rutaActual = navBackStack?.destination?.route
 
@@ -171,10 +173,10 @@ fun AppShell(onLogout: () -> Unit) {
                     HistorialScreen(onVolver = { navController.popBackStack() })
                 }
                 composable("racha") {
-                    RachaScreen(onIrCheckDiario = { navController.navigate("check_diario") })
+                    RachaScreen(vm = rachaVm, onIrCheckDiario = { navController.navigate("check_diario") })
                 }
                 composable("check_diario") {
-                    CheckDiarioScreen(onVolver = { navController.popBackStack() })
+                    CheckDiarioScreen(vm = rachaVm, onVolver = { navController.popBackStack() })
                 }
                 composable("calendario") {
                     CalendarioScreen(onVolver = { navController.popBackStack() })

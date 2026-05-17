@@ -35,24 +35,6 @@ LOCK TABLES `ejercicio` WRITE;
 INSERT INTO `ejercicio` VALUES (1,1,'Press de banca','Pecho',4,10,90),(2,1,'Press inclinado','Pecho',4,10,90),(3,1,'Aperturas con mancuernas','Pecho',3,10,90),(4,1,'Remo con barra','Espalda',4,10,90),(5,1,'Remo con mancuerna','Espalda',4,10,90),(6,1,'Dominadas asistidas','Espalda',3,10,90),(7,1,'Laterales','Hombro',3,12,90),(8,1,'Curl con mancuernas','Biceps',3,10,90),(9,1,'Extensión en polea','Triceps',3,10,90),(10,1,'Sentadilla','Cuadriceps',4,10,90),(11,1,'Prensa','Cuadriceps',4,10,90),(12,1,'Peso muerto rumano','Isquiotibiales',4,10,90),(13,1,'Hip thrust','Gluteo',4,10,90),(14,1,'Gemelos de pie','Gemelos',4,12,60),(15,2,'Press máquina','Pecho',3,12,60),(16,2,'Aperturas máquina','Pecho',3,12,60),(17,2,'Jalón al pecho','Espalda',3,12,60),(18,2,'Remo en máquina','Espalda',3,12,60),(19,2,'Press militar','Hombro',4,10,60),(20,2,'Curl con barra','Biceps',3,12,60),(21,2,'Fondos en banco','Triceps',3,12,60),(22,2,'Extensiones en máquina','Cuadriceps',3,12,60),(23,2,'Sentadilla guiada','Cuadriceps',3,12,60),(24,2,'Curl femoral','Isquiotibiales',3,12,60),(25,2,'Puente de glúteo','Gluteo',3,12,60),(26,2,'Abducciones con banda','Gluteo',3,15,60),(27,2,'Gemelos sentado','Gemelos',3,15,60),(28,3,'Fondos en paralelas','Pecho',3,NULL,120),(29,3,'Press de banca pesado','Pecho',5,5,120),(30,3,'Flexiones explosivas','Pecho',3,8,120),(31,3,'Dominadas estrictas','Espalda',3,NULL,120),(32,3,'Peso muerto','Espalda',5,5,120),(33,3,'Remo Pendlay','Espalda',4,8,120),(34,3,'Arnold press','Hombro',4,10,120),(35,3,'Curl concentrado','Biceps',3,8,120),(36,3,'Press francés','Triceps',3,8,120),(37,3,'Sentadilla pesada','Cuadriceps',5,5,120),(38,3,'Hack squat','Cuadriceps',4,8,120),(39,3,'Bulgarian split squat','Cuadriceps',3,8,120),(40,3,'Nordic curl','Isquiotibiales',3,6,120),(41,3,'Hip thrust pesado','Gluteo',5,5,120),(42,3,'Peso muerto sumo','Gluteo',5,5,120),(43,3,'Saltos de gemelo','Gemelos',3,20,90),(44,4,'Flexiones inclinadas','Pecho',3,12,60),(45,4,'Press máquina','Pecho',3,12,60),(46,4,'Pullover en polea','Espalda',3,12,60),(47,4,'Jalón al pecho','Espalda',3,12,60),(48,4,'Press militar','Hombro',4,10,60),(49,4,'Curl con barra','Biceps',3,12,60),(50,4,'Fondos en banco','Triceps',3,12,60),(51,4,'Sentadilla guiada','Cuadriceps',3,12,60),(52,4,'Prensa ligera','Cuadriceps',3,12,60),(53,4,'Curl femoral','Isquiotibiales',3,12,60),(54,4,'Puente de glúteo','Gluteo',3,12,60),(55,4,'Patada en polea','Gluteo',3,12,60),(56,4,'Gemelos sentado','Gemelos',3,15,60),(57,5,'Press máquina','Pecho',3,12,60),(58,5,'Aperturas máquina','Pecho',3,12,60),(59,5,'Jalón al pecho','Espalda',3,12,60),(60,5,'Pullover en polea','Espalda',3,12,60),(61,5,'Press militar','Hombro',4,10,60),(62,5,'Curl con barra','Biceps',3,12,60),(63,5,'Fondos en banco','Triceps',3,12,60),(64,5,'Prensa ligera','Cuadriceps',3,12,60),(65,5,'Extensiones en máquina','Cuadriceps',3,12,60),(66,5,'Curl femoral','Isquiotibiales',3,12,60),(67,5,'Abducciones con banda','Gluteo',3,15,60),(68,5,'Patada en polea','Gluteo',3,12,60),(69,5,'Gemelos sentado','Gemelos',3,15,60);
 UNLOCK TABLES;
 
-DROP TABLE IF EXISTS `gimnasio_cercano`;
-CREATE TABLE `gimnasio_cercano` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `usuario_id` int(11) NOT NULL,
-  `nombre` varchar(150) NOT NULL,
-  `direccion` varchar(255) DEFAULT NULL,
-  `distancia_km` float DEFAULT NULL,
-  `valoracion` float DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `usuario_id` (`usuario_id`),
-  CONSTRAINT `gimnasio_cercano_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuario` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `chk_valoracion` CHECK (`valoracion` between 0 and 5)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-LOCK TABLES `gimnasio_cercano` WRITE;
-INSERT INTO `gimnasio_cercano` VALUES (1,1,'FitGym Madrid Centro','Calle Gran Vía, 45, Madrid',1.2,4.5),(2,1,'SportZone Sol','Calle del Arenal, 10, Madrid',2.1,4.2),(3,1,'Basic-Fit Alcalá','Calle de Alcalá, 88, Madrid',3.4,3.8),(4,2,'Holmes Place Gràcia','Passeig de Gràcia, 72, Barcelona',0.8,4.7),(5,2,'DIR Diagonal','Avinguda Diagonal, 555, Barcelona',1.5,4.3),(6,2,'Synergym Eixample','Carrer de Entença, 24, Barcelona',2.8,4),(7,3,'Supera Valencia Puerto','Avenida del Puerto, 15, Valencia',0.5,4.8),(8,3,'FitGym Colón','Calle de Colón, 30, Valencia',1.8,4.1),(9,3,'FitnessFirst Gran Via','Gran Via Marqués del Turia, 52, Valencia',2.3,3.9),(10,4,'McFIT Buhaira','Avenida de la Buhaira, 20, Sevilla',1,4.4),(11,4,'Synergym Nervión','Calle Luis Montoto, 55, Sevilla',2.2,4.2),(12,4,'Sport Zone Eduardo Dato','Avenida Eduardo Dato, 45, Sevilla',3.1,3.7),(13,5,'FitGym Larios','Calle Marqués de Larios, 8, Málaga',0.7,4.6),(14,5,'McFIT Andalucía','Avenida de Andalucía, 20, Málaga',1.9,4),(15,5,'Supera Málaga Centro','Calle Armengual de la Mota, 18, Málaga',2.7,3.8);
-UNLOCK TABLES;
-
 DROP TABLE IF EXISTS `menu_semanal`;
 CREATE TABLE `menu_semanal` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
