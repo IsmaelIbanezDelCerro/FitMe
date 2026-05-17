@@ -32,6 +32,7 @@ fun CheckDiarioScreen(vm: CheckRachaViewModel, onVolver: () -> Unit = {}) {
     val strings = LocalAppStrings.current
     val racha by vm.racha.collectAsState()
     val guardando by vm.guardando.collectAsState()
+    val errorMsg by vm.errorMsg.collectAsState()
 
     val fechaHoy = vm.fechaHoy()
     val yaGuardadoHoy = racha.ultimaActividad == fechaHoy
@@ -123,6 +124,15 @@ fun CheckDiarioScreen(vm: CheckRachaViewModel, onVolver: () -> Unit = {}) {
                     )
                 }
                 else -> {
+                    if (errorMsg != null) {
+                        Text(
+                            text = errorMsg!!,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                        )
+                    }
                     Button(
                         onClick = { vm.guardarCheck(ejercicioHecho, dietaHecha) },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
