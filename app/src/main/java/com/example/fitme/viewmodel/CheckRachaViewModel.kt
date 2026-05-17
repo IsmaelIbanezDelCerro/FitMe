@@ -20,6 +20,12 @@ class CheckRachaViewModel(application: Application) : AndroidViewModel(applicati
     private val _racha = MutableStateFlow(RachaDto())
     val racha: StateFlow<RachaDto> = _racha.asStateFlow()
 
+    private val _guardando = MutableStateFlow(false)
+    val guardando: StateFlow<Boolean> = _guardando.asStateFlow()
+
+    private val _errorMsg = MutableStateFlow<String?>(null)
+    val errorMsg: StateFlow<String?> = _errorMsg.asStateFlow()
+
     init {
         cargarRacha()
     }
@@ -35,11 +41,19 @@ class CheckRachaViewModel(application: Application) : AndroidViewModel(applicati
     fun guardarCheck(ejercicioHecho: Boolean, dietaHecha: Boolean) {
         if (!ejercicioHecho && !dietaHecha) return
         viewModelScope.launch {
+            _guardando.value = true
+            _errorMsg.value = null
             try {
                 _racha.value = RetrofitClient.api.registrarCheck(prefs.usuarioId)
-            } catch (_: Exception) {}
+            } catch (e: Exception) {
+                _errorMsg.value = "Error al guardar: ${e.message}"
+            } finally {
+                _guardando.value = false
+            }
         }
     }
+
+    fun clearError() { _errorMsg.value = null }
 
     fun fechaHoy(): String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 }

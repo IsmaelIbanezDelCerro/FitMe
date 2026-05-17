@@ -31,13 +31,14 @@ import java.util.*
 fun CheckDiarioScreen(vm: CheckRachaViewModel, onVolver: () -> Unit = {}) {
     val strings = LocalAppStrings.current
     val racha by vm.racha.collectAsState()
+    val guardando by vm.guardando.collectAsState()
+    val errorMsg by vm.errorMsg.collectAsState()
 
     val fechaHoy = vm.fechaHoy()
     val yaGuardadoHoy = racha.ultimaActividad == fechaHoy
 
     var ejercicioHecho by remember { mutableStateOf(false) }
     var dietaHecha by remember { mutableStateOf(false) }
-    var guardado by remember(yaGuardadoHoy) { mutableStateOf(yaGuardadoHoy) }
 
     val fechaFormateada = remember {
         val sdf = SimpleDateFormat("EEEE, d 'de' MMMM", Locale("es", "ES"))
@@ -82,8 +83,8 @@ fun CheckDiarioScreen(vm: CheckRachaViewModel, onVolver: () -> Unit = {}) {
                 titulo = strings.exerciseSwitchTitle,
                 descripcion = strings.exerciseSwitchDesc,
                 valor = ejercicioHecho,
-                onCambio = { ejercicioHecho = it; guardado = false },
-                bloqueado = yaGuardadoHoy
+                onCambio = { ejercicioHecho = it },
+                bloqueado = yaGuardadoHoy || guardando
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -93,33 +94,53 @@ fun CheckDiarioScreen(vm: CheckRachaViewModel, onVolver: () -> Unit = {}) {
                 titulo = strings.dietSwitchTitle,
                 descripcion = strings.dietSwitchDesc,
                 valor = dietaHecha,
-                onCambio = { dietaHecha = it; guardado = false },
-                bloqueado = yaGuardadoHoy
+                onCambio = { dietaHecha = it },
+                bloqueado = yaGuardadoHoy || guardando
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (yaGuardadoHoy) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF00C853).copy(alpha = 0.15f))
-                ) {
-                    Text(text = strings.checkAlreadySavedMsg, color = Color(0xFF00C853), fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp).fillMaxWidth(), textAlign = TextAlign.Center)
+            when {
+                yaGuardadoHoy -> {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF00C853).copy(alpha = 0.15f))
+                    ) {
+                        Text(
+                            text = strings.checkAlreadySavedMsg,
+                            color = Color(0xFF00C853),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
-            } else {
-                if (guardado) {
-                    Text(strings.savedCorrectlyMsg, color = Color(0xFF00C853), fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                guardando -> {
+                    CircularProgressIndicator(
+                        color = Color(0xFF00C853),
+                        modifier = Modifier.size(36.dp),
+                        strokeWidth = 3.dp
+                    )
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = { vm.guardarCheck(ejercicioHecho, dietaHecha); guardado = true },
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
-                    shape = RoundedCornerShape(12.dp),
-                    enabled = !guardado
-                ) {
-                    Text(strings.saveCheckBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                else -> {
+                    if (errorMsg != null) {
+                        Text(
+                            text = errorMsg!!,
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                        )
+                    }
+                    Button(
+                        onClick = { vm.guardarCheck(ejercicioHecho, dietaHecha) },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(strings.saveCheckBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
                 }
             }
 
@@ -159,36 +180,25 @@ private fun TarjetaSwitch(icono: String, titulo: String, descripcion: String, va
     }
 }
 
-/*Un ejemplo*/
 @Preview(showBackground = true, device = "id:pixel_8")
 @Composable
 fun CheckDiarioPreview() {
     FitMeTheme {
-        // 1. Forzamos un fondo oscuro para que resalte el diseño
         Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF121212)) {
-
-            // 2. Usamos un Box con la imagen (para verla en la preview)
             Box(modifier = Modifier.fillMaxSize().paint(
                 painter = painterResource(id = R.drawable.gym_bg),
                 contentScale = ContentScale.Crop
             )) {
-
-                // 3. Importante: Como la pantalla real pide un ViewModel y Strings,
-                // aquí solo simulamos la estructura visual básica.
                 Column(
                     modifier = Modifier.fillMaxSize().padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Título simulado (en lugar de usar strings del VM)
                     Text("Check Diario", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     Text("Lunes, 5 de Mayo", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
-
                     Spacer(modifier = Modifier.height(32.dp))
-
-                    // El círculo de progreso
                     Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
-                            progress = { 0.5f }, // 1 de 2 completado
+                            progress = { 0.5f },
                             modifier = Modifier.fillMaxSize(),
                             color = Color(0xFF00C853),
                             trackColor = Color.White.copy(alpha = 0.1f),
@@ -196,10 +206,7 @@ fun CheckDiarioPreview() {
                         )
                         Text("1/2", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = Color(0xFF00C853))
                     }
-
                     Spacer(modifier = Modifier.height(32.dp))
-
-                    // Una tarjeta de ejemplo para ver cómo se ve el diseño
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
