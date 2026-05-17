@@ -127,8 +127,7 @@ fun CheckDiarioScreen(vm: CheckRachaViewModel, onVolver: () -> Unit = {}) {
                         onClick = { vm.guardarCheck(ejercicioHecho, dietaHecha) },
                         modifier = Modifier.fillMaxWidth().height(52.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
-                        shape = RoundedCornerShape(12.dp),
-                        enabled = ejercicioHecho || dietaHecha
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(strings.saveCheckBtn, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
