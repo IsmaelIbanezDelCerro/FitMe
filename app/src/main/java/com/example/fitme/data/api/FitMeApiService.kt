@@ -76,8 +76,8 @@ interface FitMeApiService {
     @GET("usuarios/{usuarioId}/racha")
     suspend fun getRacha(@Path("usuarioId") usuarioId: Int): RachaDto
 
-    @PUT("usuarios/{usuarioId}/racha")
-    suspend fun updateRacha(@Path("usuarioId") usuarioId: Int, @Body racha: RachaDto): RachaDto
+    @POST("usuarios/{usuarioId}/racha/check")
+    suspend fun registrarCheck(@Path("usuarioId") usuarioId: Int): RachaDto
 
     // --- Preferencias alimenticias ---
     @GET("usuarios/{usuarioId}/preferencias")

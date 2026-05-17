@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
@@ -29,9 +28,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun CheckDiarioScreen(onVolver: () -> Unit = {}) {
+fun CheckDiarioScreen(vm: CheckRachaViewModel, onVolver: () -> Unit = {}) {
     val strings = LocalAppStrings.current
-    val vm: CheckRachaViewModel = viewModel()
     val racha by vm.racha.collectAsState()
 
     val fechaHoy = vm.fechaHoy()

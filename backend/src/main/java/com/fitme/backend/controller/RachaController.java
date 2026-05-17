@@ -3,8 +3,9 @@ package com.fitme.backend.controller;
 import com.fitme.backend.entity.Racha;
 import com.fitme.backend.repository.RachaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/usuarios/{usuarioId}/racha")
@@ -14,27 +15,44 @@ public class RachaController {
     private final RachaRepository rachaRepo;
 
     @GetMapping
-    public ResponseEntity<Racha> getRacha(@PathVariable Integer usuarioId) {
-        return rachaRepo.findByUsuarioId(usuarioId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public Racha getRacha(@PathVariable Integer usuarioId) {
+        return rachaRepo.findByUsuarioId(usuarioId).orElseGet(() -> {
+            Racha r = new Racha();
+            r.setUsuarioId(usuarioId);
+            r.setDiasConsecutivos(0);
+            r.setRachaMaxima(0);
+            return r;
+        });
     }
 
-    @PutMapping
-    public Racha updateRacha(@PathVariable Integer usuarioId, @RequestBody Racha datos) {
-        return rachaRepo.findByUsuarioId(usuarioId).map(r -> {
-            r.setDiasConsecutivos(datos.getDiasConsecutivos());
-            r.setUltimaActividad(datos.getUltimaActividad());
-            if (datos.getRachaMaxima() != null && datos.getRachaMaxima() > r.getRachaMaxima()) {
-                r.setRachaMaxima(datos.getRachaMaxima());
-            }
-            return rachaRepo.save(r);
-        }).orElseGet(() -> {
-            datos.setId(null);
-            datos.setUsuarioId(usuarioId);
-            if (datos.getRachaMaxima() == null) datos.setRachaMaxima(0);
-            if (datos.getDiasConsecutivos() == null) datos.setDiasConsecutivos(0);
-            return rachaRepo.save(datos);
+    @PostMapping("/check")
+    public Racha registrarCheck(@PathVariable Integer usuarioId) {
+        LocalDate hoy = LocalDate.now();
+
+        Racha r = rachaRepo.findByUsuarioId(usuarioId).orElseGet(() -> {
+            Racha nueva = new Racha();
+            nueva.setUsuarioId(usuarioId);
+            nueva.setDiasConsecutivos(0);
+            nueva.setRachaMaxima(0);
+            return nueva;
         });
+
+        if (hoy.equals(r.getUltimaActividad())) {
+            return r;
+        }
+
+        if (r.getUltimaActividad() != null && hoy.minusDays(1).equals(r.getUltimaActividad())) {
+            r.setDiasConsecutivos(r.getDiasConsecutivos() + 1);
+        } else {
+            r.setDiasConsecutivos(1);
+        }
+
+        r.setUltimaActividad(hoy);
+
+        if (r.getRachaMaxima() == null || r.getDiasConsecutivos() > r.getRachaMaxima()) {
+            r.setRachaMaxima(r.getDiasConsecutivos());
+        }
+
+        return rachaRepo.save(r);
     }
 }
