@@ -8,19 +8,34 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.fitme.AppStrings
 import com.example.fitme.GymBackground
 import com.example.fitme.LanguageToggleButton
 import com.example.fitme.LocalAppStrings
+import com.example.fitme.LocalIsSpanish
+import com.example.fitme.LocalOnToggleLanguage
+import com.example.fitme.R
 import com.example.fitme.data.UserPreferences
+import com.example.fitme.loadStrings
+import com.example.fitme.ui.theme.FitMeTheme
 
 @Composable
 fun ObjetivoCalculadoScreen(onContinuar: () -> Unit) {
@@ -141,4 +156,44 @@ private fun calcularObjetivoPorImc(imc: Float, strings: AppStrings): ResultadoOb
     imc < 25f -> ResultadoObjetivo("Mantenimiento Deportivo", strings.goalSport, strings.descNormal, "🏃")
     imc < 30f -> ResultadoObjetivo("Pérdida de Peso", strings.goalWeightLoss, strings.descOverweight, "🔥")
     else -> ResultadoObjetivo("Pérdida de Peso", strings.goalWeightLoss, strings.descObese, "🌱")
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ObjetivoPreview() {
+    FitMeTheme {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .paint(
+                    painter = painterResource(id = R.drawable.gym_bg),
+                    contentScale = ContentScale.Crop
+                ),
+            color = Color.Transparent
+        ) {
+
+            var isSpanish by rememberSaveable { mutableStateOf(true) }
+            val context = LocalContext.current
+            val strings = remember(isSpanish) { loadStrings(context, isSpanish) }
+            val onToggle: () -> Unit = { isSpanish = !isSpanish }
+
+            CompositionLocalProvider(
+                LocalAppStrings provides strings,
+                LocalIsSpanish provides isSpanish,
+                LocalOnToggleLanguage provides onToggle
+            ) {
+                val navController = rememberNavController()
+                NavHost(navController = navController, startDestination = "objetivo_calculado") {
+                    composable("objetivo_calculado") {
+                        ObjetivoCalculadoScreen(onContinuar = {
+                            navController.navigate("intereses") {
+                                popUpTo("objetivo_calculado") { inclusive = true }
+                            }
+                        })
+                    }
+                }
+            }
+
+        }
+    }
 }
