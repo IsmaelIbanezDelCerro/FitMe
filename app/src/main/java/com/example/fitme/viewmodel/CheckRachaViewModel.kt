@@ -20,6 +20,9 @@ class CheckRachaViewModel(application: Application) : AndroidViewModel(applicati
     private val _racha = MutableStateFlow(RachaDto())
     val racha: StateFlow<RachaDto> = _racha.asStateFlow()
 
+    private val _guardando = MutableStateFlow(false)
+    val guardando: StateFlow<Boolean> = _guardando.asStateFlow()
+
     init {
         cargarRacha()
     }
@@ -35,9 +38,13 @@ class CheckRachaViewModel(application: Application) : AndroidViewModel(applicati
     fun guardarCheck(ejercicioHecho: Boolean, dietaHecha: Boolean) {
         if (!ejercicioHecho && !dietaHecha) return
         viewModelScope.launch {
+            _guardando.value = true
             try {
                 _racha.value = RetrofitClient.api.registrarCheck(prefs.usuarioId)
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+            } finally {
+                _guardando.value = false
+            }
         }
     }
 
