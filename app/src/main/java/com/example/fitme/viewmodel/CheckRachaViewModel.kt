@@ -34,9 +34,7 @@ class CheckRachaViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             try {
                 _racha.value = RetrofitClient.api.getRacha(prefs.usuarioId)
-            } catch (e: Exception) {
-                _errorMsg.value = "Error al cargar racha: ${e.message}"
-            }
+            } catch (_: Exception) {}
         }
     }
 
