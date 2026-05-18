@@ -22,7 +22,6 @@ class MenuPersonalViewModel(application: Application) : AndroidViewModel(applica
     val diasMenu: StateFlow<List<DiaMenuDto>> = _diasMenu.asStateFlow()
 
     private val _menuActual = MutableStateFlow<MenuSemanalDto?>(null)
-    val menuActual: StateFlow<MenuSemanalDto?> = _menuActual.asStateFlow()
 
     init {
         cargarMenuSemana()

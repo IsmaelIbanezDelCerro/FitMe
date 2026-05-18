@@ -131,7 +131,6 @@ fun GimnasiosScreen(onVolver: () -> Unit) {
             uiSettings = MapUiSettings(zoomControlsEnabled = true)
         ) {
             MapEffect(Unit) { map ->
-                // Carga inicial con los gimnasios del JSON (Madrid)
                 if (initialPlaces.isNotEmpty()) {
                     map.setOnMapLoadedCallback {
                         val bounds = LatLngBounds.builder()

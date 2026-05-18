@@ -52,8 +52,5 @@ class CheckRachaViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
-
-    fun clearError() { _errorMsg.value = null }
-
     fun fechaHoy(): String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 }

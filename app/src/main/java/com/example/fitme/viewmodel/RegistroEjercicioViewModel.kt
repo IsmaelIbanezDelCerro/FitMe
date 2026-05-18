@@ -41,8 +41,6 @@ class RegistroEjercicioViewModel(application: Application) : AndroidViewModel(ap
         } catch (_: Exception) {}
     }
 
-    fun obtenerEjerciciosDia(): StateFlow<List<EjercicioDto>> = _ejerciciosDia
-
     fun guardarRegistro(
         nombreRutina: String,
         nombreEjercicio: String,

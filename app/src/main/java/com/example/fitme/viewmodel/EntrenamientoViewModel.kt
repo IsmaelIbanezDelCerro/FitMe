@@ -31,17 +31,4 @@ class EntrenamientoViewModel(application: Application) : AndroidViewModel(applic
             } catch (_: Exception) {}
         }
     }
-
-    fun guardarEntrenamiento(nombreRutina: String, duracionMinutos: Int) {
-        val fecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        viewModelScope.launch {
-            try {
-                RetrofitClient.api.addRutina(
-                    prefs.usuarioId,
-                    RutinaDto(nombre = nombreRutina, objetivo = "$duracionMinutos min · $fecha", activa = false)
-                )
-                cargarHistorial()
-            } catch (_: Exception) {}
-        }
-    }
 }
