@@ -53,7 +53,7 @@ fun GraficaPesoScreen(onVolver: () -> Unit) {
                     )
                 }
             } else {
-                LineaGrafica(puntos = datos.map { it.pesoKg }, color = Color(0xFF00C853), etiquetaY = "kg")
+                LineaGrafica(puntos = datos.map { it.pesoKg }, color = Color.White.copy(alpha = 0.8f), etiquetaY = "kg")
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -96,13 +96,7 @@ fun GraficaImcScreen(onVolver: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                LeyendaImc("< 18.5", strings.underweightLabel, Color(0xFF2196F3))
-                LeyendaImc("18.5–25", strings.normalLabel, Color(0xFF00C853))
-                LeyendaImc("25–30", strings.overweightLabel, Color(0xFFFFC107))
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (datos.isEmpty()) {
                 Box(
@@ -117,7 +111,7 @@ fun GraficaImcScreen(onVolver: () -> Unit) {
             } else {
                 LineaGrafica(
                     puntos = datos.map { it.nota?.removePrefix("IMC: ")?.toFloatOrNull() ?: 0f },
-                    color = Color(0xFFFFC107),
+                    color = Color.White.copy(alpha = 0.8f),
                     etiquetaY = strings.imcLabel
                 )
             }
@@ -209,13 +203,4 @@ private fun FilaRegistroImc(registro: RegistroPesoDto) {
         Text("${"%.2f".format(imc)}", color = color, fontSize = 14.sp, fontWeight = FontWeight.Bold)
     }
     HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
-}
-
-@Composable
-private fun LeyendaImc(rango: String, nombre: String, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(10.dp).background(color, RoundedCornerShape(2.dp)))
-        Spacer(modifier = Modifier.width(4.dp))
-        Text("$rango $nombre", color = Color.White.copy(alpha = 0.7f), fontSize = 10.sp)
-    }
 }
