@@ -42,13 +42,13 @@ fun GraficaPesoScreen(onVolver: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(20.dp))
 
-            if (datos.size < 2) {
+            if (datos.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(220.dp).background(Color(0xFF1A1A1A).copy(alpha = 0.92f), RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (datos.isEmpty()) strings.noRecordsYetMsg else strings.need2RecordsMsg,
+                        text = strings.noRecordsYetMsg,
                         color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp, textAlign = TextAlign.Center
                     )
                 }
@@ -104,13 +104,13 @@ fun GraficaImcScreen(onVolver: () -> Unit) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (datos.size < 2) {
+            if (datos.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(220.dp).background(Color(0xFF1A1A1A).copy(alpha = 0.92f), RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (datos.isEmpty()) strings.imcNoRecords else strings.imcNeed2,
+                        text = strings.imcNoRecords,
                         color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp, textAlign = TextAlign.Center
                     )
                 }
@@ -151,6 +151,7 @@ private fun LineaGrafica(puntos: List<Float>, color: Color, etiquetaY: String) {
     val minVal = puntos.min()
     val maxVal = puntos.max()
     val rango = if (maxVal - minVal < 0.01f) 1f else maxVal - minVal
+    val unSoloPunto = puntos.size == 1
 
     Box(
         modifier = Modifier.fillMaxWidth().height(200.dp).background(Color(0xFF1A1A1A).copy(alpha = 0.92f), RoundedCornerShape(16.dp)).padding(16.dp)
@@ -158,7 +159,7 @@ private fun LineaGrafica(puntos: List<Float>, color: Color, etiquetaY: String) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val anchoDisp = size.width
             val altoDisp = size.height
-            val paso = if (puntos.size > 1) anchoDisp / (puntos.size - 1) else anchoDisp
+            val paso = if (!unSoloPunto) anchoDisp / (puntos.size - 1) else 0f
             val lineas = 4
             for (i in 0..lineas) {
                 val y = altoDisp * i / lineas
@@ -166,14 +167,14 @@ private fun LineaGrafica(puntos: List<Float>, color: Color, etiquetaY: String) {
             }
             val path = Path()
             puntos.forEachIndexed { index, valor ->
-                val x = index * paso
-                val y = altoDisp - ((valor - minVal) / rango) * altoDisp
+                val x = if (unSoloPunto) anchoDisp / 2 else index * paso
+                val y = if (unSoloPunto) altoDisp / 2 else altoDisp - ((valor - minVal) / rango) * altoDisp
                 if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
             }
             drawPath(path, color, style = Stroke(width = 3f))
             puntos.forEachIndexed { index, valor ->
-                val x = index * paso
-                val y = altoDisp - ((valor - minVal) / rango) * altoDisp
+                val x = if (unSoloPunto) anchoDisp / 2 else index * paso
+                val y = if (unSoloPunto) altoDisp / 2 else altoDisp - ((valor - minVal) / rango) * altoDisp
                 drawCircle(color, radius = 6f, center = Offset(x, y))
                 drawCircle(Color.Black, radius = 3f, center = Offset(x, y))
             }
