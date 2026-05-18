@@ -51,13 +51,25 @@ fun MenuSemanalScreen(vm: MenuPersonalViewModel) {
                 DiaMenu(
                     dia = diaNombre,
                     desayuno = if (dto?.desayuno != null)
-                        ComidaDia(dto.desayuno, baseDia?.desayuno?.calorias ?: 0, baseDia?.desayuno?.proteinas ?: 0)
+                        ComidaDia(
+                            dto.desayuno,
+                            dto.desayunoKcal ?: baseDia?.desayuno?.calorias ?: 0,
+                            dto.desayunoProteinas ?: baseDia?.desayuno?.proteinas ?: 0
+                        )
                     else (baseDia?.desayuno ?: ComidaDia("—", 0, 0)),
                     almuerzo = if (dto?.almuerzo != null)
-                        ComidaDia(dto.almuerzo, baseDia?.almuerzo?.calorias ?: 0, baseDia?.almuerzo?.proteinas ?: 0)
+                        ComidaDia(
+                            dto.almuerzo,
+                            dto.almuerzoKcal ?: baseDia?.almuerzo?.calorias ?: 0,
+                            dto.almuerzoProteinas ?: baseDia?.almuerzo?.proteinas ?: 0
+                        )
                     else (baseDia?.almuerzo ?: ComidaDia("—", 0, 0)),
                     cena = if (dto?.cena != null)
-                        ComidaDia(dto.cena, baseDia?.cena?.calorias ?: 0, baseDia?.cena?.proteinas ?: 0)
+                        ComidaDia(
+                            dto.cena,
+                            dto.cenaKcal ?: baseDia?.cena?.calorias ?: 0,
+                            dto.cenaProteinas ?: baseDia?.cena?.proteinas ?: 0
+                        )
                     else (baseDia?.cena ?: ComidaDia("—", 0, 0))
                 )
             }
@@ -136,6 +148,7 @@ private fun DialogAnadirAlimento(
     var diaIdx by remember { mutableStateOf(0) }
     var momento by remember { mutableStateOf("desayuno") }
     var kcal by remember { mutableStateOf("") }
+    var proteinas by remember { mutableStateOf("") }
 
     val dias = diasSemana(isSpanish)
     val momentos = listOf(
@@ -208,16 +221,28 @@ private fun DialogAnadirAlimento(
                     }
                 }
 
-                OutlinedTextField(
-                    value = kcal,
-                    onValueChange = { kcal = it },
-                    label = { Text(strings.kcalFieldLabel, color = Color.White.copy(alpha = 0.7f)) },
-                    colors = campoColores,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    singleLine = true
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = kcal,
+                        onValueChange = { if (it.length <= 5 && it.all(Char::isDigit)) kcal = it },
+                        label = { Text(strings.kcalFieldLabel, color = Color.White.copy(alpha = 0.7f)) },
+                        colors = campoColores,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = proteinas,
+                        onValueChange = { if (it.length <= 4 && it.all(Char::isDigit)) proteinas = it },
+                        label = { Text(if (isSpanish) "Proteínas (g)" else "Protein (g)", color = Color.White.copy(alpha = 0.7f)) },
+                        colors = campoColores,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true
+                    )
+                }
             }
         },
         confirmButton = {
@@ -225,13 +250,28 @@ private fun DialogAnadirAlimento(
                 onClick = {
                     if (nombre.isNotBlank()) {
                         val existing = diasMenu.firstOrNull { it.diaSemana == diaIdx }
+                        val base = existing ?: DiaMenuDto(diaSemana = diaIdx)
+                        val k = kcal.toIntOrNull()
+                        val p = proteinas.toIntOrNull()
                         val updated = when (momento) {
-                            "desayuno" -> (existing ?: DiaMenuDto(diaSemana = diaIdx))
-                                .copy(desayuno = nombre.trim(), kcalTotales = kcal.toIntOrNull())
-                            "almuerzo" -> (existing ?: DiaMenuDto(diaSemana = diaIdx))
-                                .copy(almuerzo = nombre.trim())
-                            else -> (existing ?: DiaMenuDto(diaSemana = diaIdx))
-                                .copy(cena = nombre.trim())
+                            "desayuno" -> base.copy(
+                                desayuno = nombre.trim(),
+                                desayunoKcal = k,
+                                desayunoProteinas = p,
+                                kcalTotales = (k ?: 0) + (base.almuerzoKcal ?: 0) + (base.cenaKcal ?: 0)
+                            )
+                            "almuerzo" -> base.copy(
+                                almuerzo = nombre.trim(),
+                                almuerzoKcal = k,
+                                almuerzoProteinas = p,
+                                kcalTotales = (base.desayunoKcal ?: 0) + (k ?: 0) + (base.cenaKcal ?: 0)
+                            )
+                            else -> base.copy(
+                                cena = nombre.trim(),
+                                cenaKcal = k,
+                                cenaProteinas = p,
+                                kcalTotales = (base.desayunoKcal ?: 0) + (base.almuerzoKcal ?: 0) + (k ?: 0)
+                            )
                         }
                         onGuardar(updated)
                     }

@@ -61,12 +61,25 @@ class MenuPersonalViewModel(application: Application) : AndroidViewModel(applica
             try {
                 val menuId = _menuActual.value?.id ?: return@launch
                 val existente = _diasMenu.value.firstOrNull { it.diaSemana == dia.diaSemana }
-                if (existente != null) {
+                val saved = if (existente != null) {
                     RetrofitClient.api.updateDiaMenu(existente.id, dia.copy(id = existente.id, menuId = menuId))
                 } else {
                     RetrofitClient.api.addDiaMenu(menuId, dia.copy(menuId = menuId))
                 }
-                _diasMenu.value = RetrofitClient.api.getDiasMenu(menuId)
+                // El backend puede no devolver los campos de kcal/proteínas por comida,
+                // así que los fusionamos desde el dto que enviamos nosotros.
+                val merged = saved.copy(
+                    desayunoKcal = dia.desayunoKcal,
+                    almuerzoKcal = dia.almuerzoKcal,
+                    cenaKcal = dia.cenaKcal,
+                    desayunoProteinas = dia.desayunoProteinas,
+                    almuerzoProteinas = dia.almuerzoProteinas,
+                    cenaProteinas = dia.cenaProteinas
+                )
+                _diasMenu.value = _diasMenu.value
+                    .filter { it.diaSemana != dia.diaSemana }
+                    .plus(merged)
+                    .sortedBy { it.diaSemana }
             } catch (_: Exception) {}
         }
     }

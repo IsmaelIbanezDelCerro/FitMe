@@ -178,12 +178,24 @@ fun InteresesScreen(navController: NavController) {
                 }
             }
 
+            val selectedCount = comidas.count { it.seleccionada }
+
+            if (selectedCount < 10) {
+                Text(
+                    strings.minFoodsMsg,
+                    color = Color(0xFFFF5252),
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+
             Button(
                 onClick = {
                     navController.navigate("app") {
                         popUpTo("intereses") { inclusive = true }
                     }
                 },
+                enabled = selectedCount >= 10,
                 modifier = Modifier.fillMaxWidth().height(55.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
                 shape = RoundedCornerShape(12.dp)

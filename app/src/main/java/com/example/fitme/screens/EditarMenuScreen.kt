@@ -48,7 +48,13 @@ fun EditarMenuScreen(vm: MenuPersonalViewModel, onVolver: () -> Unit = {}) {
                     desayuno = baseDia?.desayuno?.nombre,
                     almuerzo = baseDia?.almuerzo?.nombre,
                     cena = baseDia?.cena?.nombre,
-                    kcalTotales = baseDia?.let { it.desayuno.calorias + it.almuerzo.calorias + it.cena.calorias }
+                    kcalTotales = baseDia?.let { it.desayuno.calorias + it.almuerzo.calorias + it.cena.calorias },
+                    desayunoKcal = baseDia?.desayuno?.calorias,
+                    almuerzoKcal = baseDia?.almuerzo?.calorias,
+                    cenaKcal = baseDia?.cena?.calorias,
+                    desayunoProteinas = baseDia?.desayuno?.proteinas,
+                    almuerzoProteinas = baseDia?.almuerzo?.proteinas,
+                    cenaProteinas = baseDia?.cena?.proteinas
                 )
             }
         }
@@ -64,6 +70,16 @@ fun EditarMenuScreen(vm: MenuPersonalViewModel, onVolver: () -> Unit = {}) {
             "almuerzo" -> dto.almuerzo ?: ""
             else -> dto.cena ?: ""
         }
+        val kcalActual = when (key.momento) {
+            "desayuno" -> dto.desayunoKcal ?: 0
+            "almuerzo" -> dto.almuerzoKcal ?: 0
+            else -> dto.cenaKcal ?: 0
+        }
+        val proteinasActual = when (key.momento) {
+            "desayuno" -> dto.desayunoProteinas ?: 0
+            "almuerzo" -> dto.almuerzoProteinas ?: 0
+            else -> dto.cenaProteinas ?: 0
+        }
         val momentoLabel = when (key.momento) {
             "desayuno" -> strings.breakfastLabel
             "almuerzo" -> strings.lunchLabel
@@ -72,12 +88,30 @@ fun EditarMenuScreen(vm: MenuPersonalViewModel, onVolver: () -> Unit = {}) {
         DialogEditarComida(
             titulo = "$momentoLabel — ${diasSemana(isSpanish)[key.diaSemana]}",
             valorActual = valorActual,
+            kcalActual = kcalActual,
+            proteinasActual = proteinasActual,
+            isSpanish = isSpanish,
             strings = strings,
-            onConfirmar = { nuevo ->
+            onConfirmar = { nuevo, kcal, proteinas ->
                 menuLocal[key.diaSemana] = when (key.momento) {
-                    "desayuno" -> dto.copy(desayuno = nuevo)
-                    "almuerzo" -> dto.copy(almuerzo = nuevo)
-                    else -> dto.copy(cena = nuevo)
+                    "desayuno" -> dto.copy(
+                        desayuno = nuevo,
+                        desayunoKcal = kcal,
+                        desayunoProteinas = proteinas,
+                        kcalTotales = kcal + (dto.almuerzoKcal ?: 0) + (dto.cenaKcal ?: 0)
+                    )
+                    "almuerzo" -> dto.copy(
+                        almuerzo = nuevo,
+                        almuerzoKcal = kcal,
+                        almuerzoProteinas = proteinas,
+                        kcalTotales = (dto.desayunoKcal ?: 0) + kcal + (dto.cenaKcal ?: 0)
+                    )
+                    else -> dto.copy(
+                        cena = nuevo,
+                        cenaKcal = kcal,
+                        cenaProteinas = proteinas,
+                        kcalTotales = (dto.desayunoKcal ?: 0) + (dto.almuerzoKcal ?: 0) + kcal
+                    )
                 }
                 mealEditando = null
             },
@@ -124,11 +158,21 @@ fun EditarMenuScreen(vm: MenuPersonalViewModel, onVolver: () -> Unit = {}) {
                                     "almuerzo" -> dto?.almuerzo ?: "—"
                                     else -> dto?.cena ?: "—"
                                 }
-                                val kcal = if (clave == "desayuno") dto?.kcalTotales ?: 0 else 0
+                                val kcal = when (clave) {
+                                    "desayuno" -> dto?.desayunoKcal ?: 0
+                                    "almuerzo" -> dto?.almuerzoKcal ?: 0
+                                    else -> dto?.cenaKcal ?: 0
+                                }
+                                val proteinas = when (clave) {
+                                    "desayuno" -> dto?.desayunoProteinas ?: 0
+                                    "almuerzo" -> dto?.almuerzoProteinas ?: 0
+                                    else -> dto?.cenaProteinas ?: 0
+                                }
                                 FilaComidaEditable(
                                     etiqueta = etiqueta,
                                     nombreComida = nombre,
                                     calorias = kcal,
+                                    proteinas = proteinas,
                                     onEditar = { mealEditando = MealEditing(idx, clave) }
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
@@ -162,12 +206,17 @@ fun EditarMenuScreen(vm: MenuPersonalViewModel, onVolver: () -> Unit = {}) {
 }
 
 @Composable
-private fun FilaComidaEditable(etiqueta: String, nombreComida: String, calorias: Int, onEditar: () -> Unit) {
+private fun FilaComidaEditable(etiqueta: String, nombreComida: String, calorias: Int, proteinas: Int, onEditar: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Column(modifier = Modifier.weight(1f)) {
             Text(etiqueta, color = Color.White.copy(alpha = 0.55f), fontSize = 11.sp)
             Text(nombreComida, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            if (calorias > 0) Text("$calorias kcal (total día)", color = Color(0xFF00C853), fontSize = 11.sp)
+            if (calorias > 0 || proteinas > 0) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (calorias > 0) Text("$calorias kcal", color = Color(0xFF00C853), fontSize = 11.sp)
+                    if (proteinas > 0) Text("${proteinas}g prot.", color = Color(0xFF80CBC4), fontSize = 11.sp)
+                }
+            }
         }
         IconButton(onClick = onEditar) { Text("✏️", fontSize = 16.sp) }
     }
@@ -177,11 +226,16 @@ private fun FilaComidaEditable(etiqueta: String, nombreComida: String, calorias:
 private fun DialogEditarComida(
     titulo: String,
     valorActual: String,
+    kcalActual: Int,
+    proteinasActual: Int,
+    isSpanish: Boolean,
     strings: com.example.fitme.AppStrings,
-    onConfirmar: (String) -> Unit,
+    onConfirmar: (String, Int, Int) -> Unit,
     onDescartar: () -> Unit
 ) {
     var nombre by remember { mutableStateOf(valorActual) }
+    var kcalTexto by remember { mutableStateOf(if (kcalActual > 0) kcalActual.toString() else "") }
+    var proteinasTexto by remember { mutableStateOf(if (proteinasActual > 0) proteinasActual.toString() else "") }
 
     AlertDialog(
         onDismissRequest = onDescartar,
@@ -190,18 +244,46 @@ private fun DialogEditarComida(
             Text(text = titulo, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
         },
         text = {
-            OutlinedTextField(
-                value = nombre,
-                onValueChange = { nombre = it },
-                label = { Text(strings.foodFieldLabel, color = Color.White.copy(alpha = 0.7f)) },
-                colors = dialogCampoColores(),
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth()
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    value = nombre,
+                    onValueChange = { nombre = it },
+                    label = { Text(strings.foodFieldLabel, color = Color.White.copy(alpha = 0.7f)) },
+                    colors = dialogCampoColores(),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = kcalTexto,
+                        onValueChange = { if (it.length <= 5 && it.all(Char::isDigit)) kcalTexto = it },
+                        label = { Text("kcal", color = Color.White.copy(alpha = 0.7f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = dialogCampoColores(),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f)
+                    )
+                    OutlinedTextField(
+                        value = proteinasTexto,
+                        onValueChange = { if (it.length <= 4 && it.all(Char::isDigit)) proteinasTexto = it },
+                        label = { Text(if (isSpanish) "Proteínas (g)" else "Protein (g)", color = Color.White.copy(alpha = 0.7f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = dialogCampoColores(),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirmar(nombre.trim().ifEmpty { valorActual }) },
+                onClick = {
+                    onConfirmar(
+                        nombre.trim().ifEmpty { valorActual },
+                        kcalTexto.toIntOrNull() ?: kcalActual,
+                        proteinasTexto.toIntOrNull() ?: proteinasActual
+                    )
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00C853)),
                 shape = RoundedCornerShape(8.dp)
             ) { Text(strings.saveBtn, fontWeight = FontWeight.Bold) }

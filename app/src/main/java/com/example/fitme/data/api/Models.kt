@@ -58,7 +58,13 @@ data class DiaMenuDto(
     val desayuno: String? = null,
     val almuerzo: String? = null,
     val cena: String? = null,
-    val kcalTotales: Int? = null
+    val kcalTotales: Int? = null,
+    val desayunoKcal: Int? = null,
+    val almuerzoKcal: Int? = null,
+    val cenaKcal: Int? = null,
+    val desayunoProteinas: Int? = null,
+    val almuerzoProteinas: Int? = null,
+    val cenaProteinas: Int? = null
 )
 
 data class RachaDto(
